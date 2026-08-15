@@ -57,10 +57,30 @@ const SHOTS = {
   ],
   c: [
     { name: "1-hero" },
-    { name: "2-camera-open", to: ["[data-expand-scene]", 0.75] },
-    { name: "3-gallery", to: ["[data-gallery-scene]", 1.6] },
+    { name: "2-camera-open", to: ['[data-shot="camera"]', 0.75] },
+    { name: "3-gallery", to: ['[data-shot="gallery"]', 1.6] },
+    { name: "4-case-study", to: ['[data-shot="case"]', 1.0] },
+    { name: "5-repos", to: ['[data-shot="repos"]', -0.05] },
+    { name: "6-about", to: ['[data-shot="about"]', 0.15] },
+    { name: "7-contact", to: ['[data-shot="contact"]', 2] },
+    { name: "8-contact-hover", hover: '[data-shot="email"]' },
+  ],
+  c2: [
+    { name: "1-hero" },
+    { name: "2-camera-open", to: ['[data-shot="camera"]', 0.75] },
+    { name: "3-gallery", to: ['[data-shot="gallery"]', 1.6] },
+    { name: "4-case-study", to: ['[data-shot="case"]', 1.0] },
+  ],
+  c3: [
+    { name: "1-hero" },
+    { name: "2-camera-open", to: ['[data-shot="camera"]', 0.75] },
+    { name: "3-gallery", to: ['[data-shot="gallery"]', 1.6] },
+    { name: "4-case-study", to: ['[data-shot="case"]', 1.0] },
   ],
 };
+
+/** Mobile gets the first N frames of each list unless overridden. */
+const MOBILE_FRAMES = { c: 5, c2: 2, c3: 2, a: 2, b: 2 };
 
 async function shoot(browser, id, vp) {
   const context = await browser.newContext({
@@ -79,7 +99,7 @@ async function shoot(browser, id, vp) {
     .catch(() => console.warn(`  ! ${id}/${vp.label}: intro did not report done`));
   await wait(800);
 
-  const steps = vp.mobile ? SHOTS[id].slice(0, 2) : SHOTS[id];
+  const steps = vp.mobile ? SHOTS[id].slice(0, MOBILE_FRAMES[id] ?? 2) : SHOTS[id];
 
   for (const step of steps) {
     if (step.to) await scrollTo(page, await anchorY(page, step.to[0], step.to[1]));
@@ -87,7 +107,7 @@ async function shoot(browser, id, vp) {
       const box = await page.locator(step.hover).boundingBox();
       if (box) {
         await page.mouse.move(box.x + box.width * 0.35, box.y + box.height / 2, { steps: 12 });
-        await wait(900);
+        await wait(1300);
       }
     }
     await page.screenshot({ path: `${OUT}${id}-${vp.label}-${step.name}.png` });
@@ -102,9 +122,12 @@ const VIEWPORTS = [
   { label: "mobile", width: 390, height: 844, dsf: 3, mobile: true },
 ];
 
+// Optional second arg limits which pages to shoot, e.g. "c,c2,c3".
+const PAGES = process.argv[3] ? process.argv[3].split(",") : Object.keys(SHOTS);
+
 const browser = await chromium.launch({ executablePath: EXECUTABLE });
 await mkdir(OUT, { recursive: true });
-for (const id of Object.keys(SHOTS)) {
+for (const id of PAGES) {
   for (const vp of VIEWPORTS) await shoot(browser, id, vp);
 }
 await browser.close();

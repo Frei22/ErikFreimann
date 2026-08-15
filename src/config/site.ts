@@ -84,6 +84,56 @@ export type Project = {
   href: string;
 };
 
+/**
+ * The featured case study, told in three beats — the pinned, scrubbed section
+ * steps through these as you scroll.
+ * TODO: verify every claim against the repo README before launch.
+ */
+export const featuredCase = {
+  name: "RoamBetter",
+  year: "2025",
+  role: "Design & build",
+  href: "#",
+  stack: ["Next.js", "TypeScript", "Tailwind", "Firebase", "Firestore"],
+  beats: [
+    {
+      label: "The problem",
+      title: "Two sides that must not meet directly.",
+      body: "Tradespeople looking for work abroad, and employers looking for them. The operator sits in the middle — and a marketplace only works if that middle can't be cut out.",
+    },
+    {
+      label: "What I built",
+      title: "A placement platform with role-based access throughout.",
+      body: "Next.js App Router and TypeScript on the front, Firebase behind it. Workers, employers and admins each see a different application built from the same codebase.",
+    },
+    {
+      label: "The interesting part",
+      title: "The database enforces the business model.",
+      body: "Contact details live in admin-only Firestore collections. It isn't a UI rule that hides the phone number — the security rules mean the data never reaches the other side's client at all.",
+    },
+  ],
+} as const;
+
+/**
+ * Stand-in for the live GitHub feed. The real grid pulls public repos from the
+ * REST API for `githubUsername`, minus anything in `hiddenRepos`.
+ */
+export const sampleRepos = [
+  { name: "alpina-web", description: "Student ski association site — bookings + admin.", language: "TypeScript", stars: 4 },
+  { name: "roambetter", description: "Worker placement platform.", language: "TypeScript", stars: 2 },
+  { name: "food-tracker", description: "Flutter app that logs meals from a photo.", language: "Dart", stars: 3 },
+  { name: "indiska-grytan", description: "Restaurant site, hand-written HTML/CSS/JS.", language: "HTML", stars: 1 },
+  { name: "ltu-labs", description: "Coursework and experiments from LTU.", language: "C", stars: 0 },
+  { name: "portfolio", description: "This site.", language: "TypeScript", stars: 1 },
+];
+
+/** About copy — first person, plain. */
+export const about = [
+  "I'm a computer engineering student at Luleå tekniska universitet, and I build full-stack web and mobile products — usually the whole thing, from the data model to the last hover state.",
+  "Most of what I ship is React, Next.js and TypeScript on the web, Flutter on mobile, and Firebase behind both. I like the parts other people skip: security rules that actually hold, admin tooling a client can run without me, and interfaces that stay fast on a mid-range phone.",
+  "I'm available for freelance web work — sites, web apps, and the occasional rescue of something half-finished.",
+] as const;
+
 export const projects: Project[] = [
   {
     index: "01",

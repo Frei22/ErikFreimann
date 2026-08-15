@@ -15,6 +15,9 @@ const PALETTES = {
   a: { bg: "#0b0d0e", ink: "#f2f1ec", accent: "#ccff3d", alt: "#1b1f22" },
   b: { bg: "#f5efe3", ink: "#12100e", accent: "#ff4d1c", alt: "#2b4bff" },
   c: { bg: "#e7e0d2", ink: "#16130f", accent: "#b23a2e", alt: "#c2a878" },
+  // Cinema variants
+  n: { bg: "#141210", ink: "#ede7da", accent: "#e0552f", alt: "#4a4038" },
+  p: { bg: "#efece1", ink: "#12140f", accent: "#2f5d3a", alt: "#b9bda8" },
 };
 
 /** Mulberry32 — stable pseudo-random so art never changes between runs. */

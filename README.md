@@ -3,8 +3,10 @@
 Personal portfolio and case-study site. Next.js (App Router) + TypeScript + Tailwind CSS,
 with GSAP (ScrollTrigger + SplitText) and Lenis for motion.
 
-**Status: Phase 0.** Three visual directions are built as working slices so one can be
-chosen before the full site is assembled. Nothing here is final copy or final imagery.
+**Status: direction chosen — "Cinema".** The page is built out full length (hero,
+camera-move scene, pinned work gallery, scrubbed case study, project grid, about,
+contact) in three variants of that direction. Copy is drafted and imagery is
+placeholder; both get replaced before launch.
 
 ---
 
@@ -15,10 +17,16 @@ npm install
 npm run dev          # http://localhost:3000
 ```
 
-- `/` — index of the three directions
-- `/d/a` — **Takeover** (black + acid lime, kinetic type)
-- `/d/b` — **Pop** (cream + orange + cobalt, sticky card deck)
-- `/d/c` — **Cinema** (warm ivory + burnt red, pinned camera moves)
+- `/` — index of everything below
+- `/d/c` — **Cinema / Ivory** — the chosen direction, built out full length
+- `/d/c2` — **Cinema / Night** — ink ground, ember accent, hero centred
+- `/d/c3` — **Cinema / Press** — bright paper, deep green, hero split across a rule
+- `/d/a`, `/d/b` — the two directions not taken, kept for reference
+
+All three Cinema pages render the same sections from the same components
+(`src/components/cinema/`). A variant is a `CinemaTheme` — ground, accent and
+hero composition — so choosing one is a one-line change, and unused variants
+can simply be deleted.
 
 ## Configuration
 
@@ -36,7 +44,8 @@ feature, and the list of repos to hide.
 it, writing frames to `/mockups`:
 
 ```bash
-PORT=3100 ./scripts/capture.sh
+PORT=3100 ./scripts/capture.sh          # everything
+PORT=3100 ./scripts/capture.sh c,c2,c3  # just the Cinema pages
 ```
 
 Frames are viewport-sized rather than full-page on purpose — these pages use pinned and
@@ -92,12 +101,12 @@ firebase deploy --only hosting
 Note that `next/image` optimisation is unavailable on static export; the site uses plain
 `<img>` with explicit dimensions, so nothing breaks.
 
-## Still to do (full build)
+## Still to do
 
-1. Pick a direction.
+1. Settle on a Cinema variant (ivory / night / press).
 2. Read each featured repo's README and write the case studies from what is actually
    there — problem, build, stack, and the technically interesting parts.
 3. Pull the remaining public repos from the GitHub REST API into the "All projects" grid,
-   skipping `hiddenRepos`.
-4. About + contact/footer sections.
-5. Real project screenshots, Open Graph image, sitemap, and a Lighthouse pass on mobile.
+   skipping `hiddenRepos` (it renders from `sampleRepos` for now).
+4. Real project screenshots in place of the generated art.
+5. Open Graph image, sitemap, and a Lighthouse pass on a real mid-range phone.

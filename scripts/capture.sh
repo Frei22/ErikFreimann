@@ -24,4 +24,5 @@ for _ in $(seq 1 30); do
   sleep 1
 done
 
-node scripts/screenshot.mjs "http://127.0.0.1:${PORT}"
+# Extra args (e.g. "c,c2,c3") limit which pages get shot.
+node scripts/screenshot.mjs "http://127.0.0.1:${PORT}" "$@"

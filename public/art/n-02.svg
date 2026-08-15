@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900">
+  <defs><pattern id="dots2" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="13" cy="13" r="4.42" fill="#ede7da"/>
+    </pattern></defs>
+  <rect width="1200" height="900" fill="#141210"/>
+  <rect x="300" y="600" width="300" height="600" fill="#ede7da" opacity="0.14"/>
+  <rect x="300" y="600" width="600" height="300" fill="#e0552f" opacity="0.9"/>
+  <rect x="900" y="0" width="300" height="600" fill="#ede7da" opacity="0.14"/>
+  <rect x="900" y="0" width="300" height="300" fill="#4a4038" opacity="0.9"/>
+  <rect x="900" y="300" width="600" height="300" fill="#ede7da" opacity="0.14"/>
+  <circle cx="364.02416434139013" cy="417.2891673166305" r="265.6257202872075" fill="none" stroke="#ede7da" stroke-width="2" opacity="0.5"/>
+  <circle cx="496.8370244849939" cy="337.60145123046823" r="111.56280252062716" fill="#e0552f"/>
+  <rect x="0" y="495.00000000000006" width="1200" height="405" fill="url(#dots2)"/>
+  <rect x="0" y="758.0471160961315" width="1200" height="2" fill="#ede7da" opacity="0.35"/>
+  <rect x="0" y="306.76415441557765" width="1200" height="1" fill="#ede7da" opacity="0.35"/>
+  <rect x="0" y="281.58981347922236" width="1200" height="1" fill="#ede7da" opacity="0.35"/>
+  <rect x="213.5522033739835" y="640" width="184.4547129655257" height="18" rx="9" fill="#e0552f" opacity="1"/>
+  <rect x="213.5522033739835" y="674" width="444.7770098783076" height="18" rx="9" fill="#ede7da" opacity="0.25"/>
+  <rect x="213.5522033739835" y="708" width="219.28688053507358" height="18" rx="9" fill="#ede7da" opacity="0.25"/>
+  <rect x="213.5522033739835" y="742" width="244.46021754294634" height="18" rx="9" fill="#ede7da" opacity="0.25"/>
+</svg>
