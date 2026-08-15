@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+@theme {
+  /* Type */
+  --font-anton: var(--f-anton), "Arial Narrow", Impact, sans-serif;
+  --font-bricolage: var(--f-bricolage), "Helvetica Neue", Arial, sans-serif;
+  --font-fraunces: var(--f-fraunces), Georgia, "Times New Roman", serif;
+  --font-inter: var(--f-inter), system-ui, sans-serif;
+  --font-mono: var(--f-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* A — takeover: black + acid */
+  --color-a-bg: #050505;
+  --color-a-ink: #f2f2ef;
+  --color-a-muted: #6d6d68;
+  --color-a-line: #1c1c1a;
+  --color-a-accent: #d8ff00;
+
+  /* B — pop: cream + orange + cobalt */
+  --color-b-bg: #f2e9dc;
+  --color-b-ink: #0d0d0d;
+  --color-b-muted: #6a6257;
+  --color-b-orange: #ff4a17;
+  --color-b-cobalt: #2b3ff7;
+
+  /* C — cinema: warm ivory + ink + burnt red */
+  --color-c-bg: #ece6da;
+  --color-c-ink: #16130f;
+  --color-c-muted: #7a7266;
+  --color-c-line: #d3ccbd;
+  --color-c-accent: #b23a2e;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* GSAP-animated elements stay hidden only while JS is going to animate them. */
+.js-anim {
+  visibility: hidden;
+}
+html.motion-ready .js-anim {
+  visibility: visible;
+}
+
+/* Rolling letter hover (see RollingText) */
+.roll .roll-in,
+.roll .roll-out {
+  transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.roll .roll-out {
+  transform: translateY(105%);
+}
+.roll:hover .roll-in,
+.group:hover .roll .roll-in,
+a:hover .roll .roll-in,
+button:hover .roll .roll-in {
+  transform: translateY(-105%);
+}
+.roll:hover .roll-out,
+.group:hover .roll .roll-out,
+a:hover .roll .roll-out,
+button:hover .roll .roll-out {
+  transform: translateY(0);
+}
+
+/* Hide the native cursor only where a custom one is drawn. */
+@media (pointer: fine) and (min-width: 1024px) {
+  .hide-cursor,
+  .hide-cursor * {
+    cursor: none;
+  }
+}
+
+*:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Hard rule: no motion means no motion. */
+@media (prefers-reduced-motion: reduce) {
+  /* Pinned/scrubbed sections collapse into ordinary stacked content. */
+  .pin-scene {
+    height: auto !important;
+  }
+  .pin-sticky {
+    position: static !important;
+    height: auto !important;
+  }
+  .pin-track {
+    flex-wrap: wrap !important;
+    transform: none !important;
+    gap: 1.5rem;
+  }
+  .pin-track > * {
+    width: 100% !important;
+  }
+  .expand-frame {
+    clip-path: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .js-anim {
+    visibility: visible !important;
+  }
+  .hide-cursor,
+  .hide-cursor * {
+    cursor: auto !important;
+  }
+}
