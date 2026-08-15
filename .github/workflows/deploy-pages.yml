@@ -1,0 +1,61 @@
+name: Deploy to GitHub Pages
+
+# One-time setup: repo Settings → Pages → Source = "GitHub Actions".
+# Then every push to main publishes, and the daily run refreshes the repo feed
+# (a static export bakes the GitHub data in at build time).
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build static export
+        env:
+          NEXT_OUTPUT: export
+          # A project site lives at https://<user>.github.io/<repo>.
+          # Serving from a custom domain or <user>.github.io? Set this to "".
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+          # Lifts the anonymous GitHub API rate limit for the repo feed.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build
+
+      - name: Disable Jekyll processing
+        run: touch out/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

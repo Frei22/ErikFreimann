@@ -114,19 +114,6 @@ export const featuredCase = {
   ],
 } as const;
 
-/**
- * Stand-in for the live GitHub feed. The real grid pulls public repos from the
- * REST API for `githubUsername`, minus anything in `hiddenRepos`.
- */
-export const sampleRepos = [
-  { name: "alpina-web", description: "Student ski association site — bookings + admin.", language: "TypeScript", stars: 4 },
-  { name: "roambetter", description: "Worker placement platform.", language: "TypeScript", stars: 2 },
-  { name: "food-tracker", description: "Flutter app that logs meals from a photo.", language: "Dart", stars: 3 },
-  { name: "indiska-grytan", description: "Restaurant site, hand-written HTML/CSS/JS.", language: "HTML", stars: 1 },
-  { name: "ltu-labs", description: "Coursework and experiments from LTU.", language: "C", stars: 0 },
-  { name: "portfolio", description: "This site.", language: "TypeScript", stars: 1 },
-];
-
 /** About copy — first person, plain. */
 export const about = [
   "I'm a computer engineering student at Luleå tekniska universitet, and I build full-stack web and mobile products — usually the whole thing, from the data model to the last hover state.",

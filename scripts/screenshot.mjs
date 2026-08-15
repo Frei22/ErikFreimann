@@ -44,43 +44,21 @@ async function anchorY(page, selector, offsetVh = 0) {
  * `to: [selector, offsetVh]` scrolls until that element's top sits offsetVh
  * viewports above the fold — positive numbers go deeper into the section.
  */
-const SHOTS = {
-  a: [
-    { name: "1-hero" },
-    { name: "2-work-hover", to: ['[data-shot="work"]', 0.15], hover: '[data-shot="row"]' },
-    { name: "3-rows", to: ['[data-shot="work"]', 0.6] },
-  ],
-  b: [
-    { name: "1-hero" },
-    { name: "2-deck", to: ['[data-shot="deck"]', 0.45] },
-    { name: "3-deck-stacked", to: ['[data-shot="deck"]', 2.1] },
-  ],
-  c: [
-    { name: "1-hero" },
-    { name: "2-camera-open", to: ['[data-shot="camera"]', 0.75] },
-    { name: "3-gallery", to: ['[data-shot="gallery"]', 1.6] },
-    { name: "4-case-study", to: ['[data-shot="case"]', 1.0] },
-    { name: "5-repos", to: ['[data-shot="repos"]', -0.05] },
-    { name: "6-about", to: ['[data-shot="about"]', 0.15] },
-    { name: "7-contact", to: ['[data-shot="contact"]', 2] },
-    { name: "8-contact-hover", hover: '[data-shot="email"]' },
-  ],
-  c2: [
-    { name: "1-hero" },
-    { name: "2-camera-open", to: ['[data-shot="camera"]', 0.75] },
-    { name: "3-gallery", to: ['[data-shot="gallery"]', 1.6] },
-    { name: "4-case-study", to: ['[data-shot="case"]', 1.0] },
-  ],
-  c3: [
-    { name: "1-hero" },
-    { name: "2-camera-open", to: ['[data-shot="camera"]', 0.75] },
-    { name: "3-gallery", to: ['[data-shot="gallery"]', 1.6] },
-    { name: "4-case-study", to: ['[data-shot="case"]', 1.0] },
-  ],
-};
+const STEPS = [
+  { name: "1-hero" },
+  { name: "2-camera-open", to: ['[data-shot="camera"]', 0.75] },
+  { name: "3-gallery", to: ['[data-shot="gallery"]', 1.6] },
+  { name: "4-case-study", to: ['[data-shot="case"]', 1.0] },
+  { name: "5-repos", to: ['[data-shot="repos"]', -0.05] },
+  { name: "6-about", to: ['[data-shot="about"]', 0.15] },
+  { name: "7-contact", to: ['[data-shot="contact"]', 2] },
+  { name: "8-contact-hover", hover: '[data-shot="email"]' },
+];
 
-/** Mobile gets the first N frames of each list unless overridden. */
-const MOBILE_FRAMES = { c: 5, c2: 2, c3: 2, a: 2, b: 2 };
+const PAGES_MAP = {
+  home: { path: "/", steps: STEPS, mobileFrames: 5 },
+  night: { path: "/preview/night", steps: STEPS.slice(0, 4), mobileFrames: 2 },
+};
 
 async function shoot(browser, id, vp) {
   const context = await browser.newContext({
@@ -90,7 +68,7 @@ async function shoot(browser, id, vp) {
     hasTouch: Boolean(vp.mobile),
   });
   const page = await context.newPage();
-  await page.goto(`${BASE}/d/${id}`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}${PAGES_MAP[id].path}`, { waitUntil: "networkidle" });
 
   await page
     .waitForFunction(() => document.documentElement.dataset.animDone === "true", null, {
@@ -99,7 +77,8 @@ async function shoot(browser, id, vp) {
     .catch(() => console.warn(`  ! ${id}/${vp.label}: intro did not report done`));
   await wait(800);
 
-  const steps = vp.mobile ? SHOTS[id].slice(0, MOBILE_FRAMES[id] ?? 2) : SHOTS[id];
+  const { steps: all, mobileFrames } = PAGES_MAP[id];
+  const steps = vp.mobile ? all.slice(0, mobileFrames) : all;
 
   for (const step of steps) {
     if (step.to) await scrollTo(page, await anchorY(page, step.to[0], step.to[1]));
@@ -122,8 +101,8 @@ const VIEWPORTS = [
   { label: "mobile", width: 390, height: 844, dsf: 3, mobile: true },
 ];
 
-// Optional second arg limits which pages to shoot, e.g. "c,c2,c3".
-const PAGES = process.argv[3] ? process.argv[3].split(",") : Object.keys(SHOTS);
+// Optional second arg limits which pages to shoot, e.g. "home".
+const PAGES = process.argv[3] ? process.argv[3].split(",") : Object.keys(PAGES_MAP);
 
 const browser = await chromium.launch({ executablePath: EXECUTABLE });
 await mkdir(OUT, { recursive: true });

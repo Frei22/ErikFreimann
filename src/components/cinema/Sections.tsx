@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { about, sampleRepos, site } from "@/config/site";
+import { about, site } from "@/config/site";
+import type { Repo } from "@/lib/github";
 import { RollingText } from "@/components/RollingText";
 import { VelocityMarquee } from "@/components/VelocityMarquee";
 import { Magnetic } from "@/components/Magnetic";
+import { asset } from "@/lib/asset";
 import type { CinemaTheme } from "./theme";
 import {
   gsap,
@@ -67,7 +69,7 @@ export function AboutSection({ theme }: { theme: CinemaTheme }) {
           <div className="mt-8 overflow-hidden rounded-sm">
             <img
               data-parallax
-              src={`/art/${theme.artPrefix}-04.svg`}
+              src={asset(`/art/${theme.artPrefix}-04.svg`)}
               alt=""
               loading="lazy"
               decoding="async"
@@ -115,8 +117,8 @@ export function AboutSection({ theme }: { theme: CinemaTheme }) {
   );
 }
 
-/** All projects — stands in for the live GitHub feed. */
-export function ProjectsGrid() {
+/** All projects — the live GitHub feed. */
+export function ProjectsGrid({ repos }: { repos: Repo[] }) {
   const scope = useRef<HTMLElement>(null);
   useReveal(scope);
 
@@ -126,51 +128,69 @@ export function ProjectsGrid() {
         data-reveal
         className="js-anim flex items-end justify-between border-b border-[var(--line)] pb-5"
       >
-        <h2 className="text-[clamp(1.8rem,4vw,3rem)] leading-none font-normal">
-          All projects
-        </h2>
+        <h2 className="text-[clamp(1.8rem,4vw,3rem)] leading-none font-normal">All projects</h2>
         <span className="font-mono text-[11px] tracking-[0.16em] text-[var(--muted)] uppercase">
           Live from GitHub
         </span>
       </div>
 
-      <ul className="grid gap-px border-[var(--line)] md:grid-cols-3">
-        {sampleRepos.map((repo) => (
-          // Borders and padding live on the li so nth-child counts the cells.
-          <li
-            key={repo.name}
-            className="border-b border-[var(--line)] md:border-r md:px-6 md:[&:nth-child(3n)]:border-r-0 md:[&:nth-child(3n+1)]:pl-0"
+      {repos.length === 0 ? (
+        // The feed is unavailable (offline, rate-limited, or the username is
+        // wrong). Point at the profile rather than showing an empty grid.
+        <p data-reveal className="js-anim py-10 font-inter text-[15px] text-[var(--muted)]">
+          The repository list could not be loaded right now —{" "}
+          <a
+            href={`https://github.com/${site.githubUsername}`}
+            className="text-[var(--ink)] underline underline-offset-4"
           >
-            <a
-              data-reveal
-              href={`https://github.com/${site.githubUsername}/${repo.name}`}
-              className="js-anim group flex h-full flex-col justify-between gap-8 py-7"
+            browse everything on GitHub ↗
+          </a>
+        </p>
+      ) : (
+        <ul className="grid gap-px border-[var(--line)] md:grid-cols-3">
+          {repos.map((repo) => (
+            // Borders and padding live on the li so nth-child counts the cells.
+            <li
+              key={repo.name}
+              className="border-b border-[var(--line)] md:border-r md:px-6 md:[&:nth-child(3n)]:border-r-0 md:[&:nth-child(3n+1)]:pl-0"
             >
-              <div>
-                <div className="flex items-start justify-between gap-4">
-                  <h3 className="font-mono text-[13px] tracking-[0.06em]">
-                    <RollingText text={repo.name} />
-                  </h3>
-                  <span className="text-[var(--muted)] transition-transform duration-500 group-hover:-translate-y-1 group-hover:translate-x-1">
-                    ↗
-                  </span>
+              <a
+                data-reveal
+                href={repo.url}
+                target="_blank"
+                rel="noreferrer"
+                className="js-anim group flex h-full flex-col justify-between gap-8 py-7"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-4">
+                    <h3 className="font-mono text-[13px] tracking-[0.06em]">
+                      <RollingText text={repo.name} />
+                    </h3>
+                    <span className="text-[var(--muted)] transition-transform duration-500 group-hover:-translate-y-1 group-hover:translate-x-1">
+                      ↗
+                    </span>
+                  </div>
+                  {repo.description ? (
+                    <p className="mt-3 max-w-xs font-inter text-[14px] leading-relaxed text-[var(--muted)]">
+                      {repo.description}
+                    </p>
+                  ) : null}
                 </div>
-                <p className="mt-3 max-w-xs font-inter text-[14px] leading-relaxed text-[var(--muted)]">
-                  {repo.description}
-                </p>
-              </div>
 
-              <div className="flex items-center gap-4 font-mono text-[10px] tracking-[0.14em] text-[var(--muted)] uppercase">
-                <span className="flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-[var(--accent)]" aria-hidden />
-                  {repo.language}
-                </span>
-                <span>★ {repo.stars}</span>
-              </div>
-            </a>
-          </li>
-        ))}
-      </ul>
+                <div className="flex items-center gap-4 font-mono text-[10px] tracking-[0.14em] text-[var(--muted)] uppercase">
+                  {repo.language ? (
+                    <span className="flex items-center gap-2">
+                      <span className="size-2 rounded-full bg-[var(--accent)]" aria-hidden />
+                      {repo.language}
+                    </span>
+                  ) : null}
+                  {repo.stars > 0 ? <span>★ {repo.stars}</span> : null}
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

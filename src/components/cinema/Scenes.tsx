@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { featuredCase, projects } from "@/config/site";
 import { RollingText } from "@/components/RollingText";
+import { asset } from "@/lib/asset";
 import type { CinemaTheme } from "./theme";
 import {
   gsap,
@@ -11,7 +12,7 @@ import {
   useIsomorphicLayoutEffect,
 } from "@/lib/motion";
 
-const art = (theme: CinemaTheme, i: number) => `/art/${theme.artPrefix}-0${i + 1}.svg`;
+const art = (theme: CinemaTheme, i: number) => asset(`/art/${theme.artPrefix}-0${i + 1}.svg`);
 
 /**
  * CAMERA MOVE 1 — a window in the middle of the page that opens to full bleed

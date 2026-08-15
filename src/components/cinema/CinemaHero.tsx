@@ -145,48 +145,6 @@ export function CinemaHero({ theme }: { theme: CinemaTheme }) {
     );
   }
 
-  if (theme.heroLayout === "split") {
-    return (
-      <section
-        ref={scope}
-        className="relative flex min-h-[100svh] flex-col justify-between px-5 pb-10 pt-28 md:px-10"
-      >
-        <div className="grid flex-1 content-center gap-10 md:grid-cols-12 md:items-end md:gap-6">
-          <div className="flex flex-col gap-8 md:col-span-4">
-            {label}
-            <p
-              data-fade
-              className="js-anim max-w-sm font-inter text-[15px] leading-relaxed text-[var(--muted)]"
-            >
-              {site.intro}
-            </p>
-            <div>{cta}</div>
-          </div>
-
-          <h1 className="text-[clamp(3rem,11vw,11rem)] leading-[0.9] font-normal tracking-[-0.03em] md:col-span-8 md:border-l md:border-[var(--line)] md:pl-8 md:text-right">
-            <span data-split className="js-anim block">
-              Erik
-            </span>
-            <span data-split className="js-anim block italic text-[var(--accent)]">
-              Freimann
-            </span>
-          </h1>
-        </div>
-
-        <div data-rule className="js-anim mt-12 h-px w-full bg-[var(--line)]" aria-hidden />
-
-        <div className="mt-5 flex items-center justify-between font-mono text-[11px] tracking-[0.16em] text-[var(--muted)] uppercase">
-          <span data-fade className="js-anim">
-            {site.location}
-          </span>
-          <span data-fade className="js-anim">
-            Selected work — 04 ↓
-          </span>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section
       ref={scope}

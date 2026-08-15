@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "shots": "node scripts/screenshot.mjs"
+    "shots": "node scripts/screenshot.mjs",
+    "og": "node scripts/og.mjs",
+    "build:export": "NEXT_OUTPUT=export next build"
   },
   "dependencies": {
     "gsap": "^3.13.0",

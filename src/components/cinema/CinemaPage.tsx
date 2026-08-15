@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { site } from "@/config/site";
+import type { Repo } from "@/lib/github";
 import {
   ScrollTrigger,
   gsap,
@@ -22,7 +23,7 @@ import type { CinemaTheme } from "./theme";
  * Full Cinema page. Every variant renders the same sections in the same order —
  * the theme decides the ground, the accent and the hero composition.
  */
-export function CinemaPage({ theme }: { theme: CinemaTheme }) {
+export function CinemaPage({ theme, repos }: { theme: CinemaTheme; repos: Repo[] }) {
   const nav = useRef<HTMLElement>(null);
   useLenis();
 
@@ -99,7 +100,7 @@ export function CinemaPage({ theme }: { theme: CinemaTheme }) {
           <WorkGallery theme={theme} />
         </div>
         <CaseStudy theme={theme} />
-        <ProjectsGrid />
+        <ProjectsGrid repos={repos} />
         <AboutSection theme={theme} />
       </main>
 
