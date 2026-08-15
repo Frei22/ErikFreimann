@@ -14,7 +14,9 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  ...(isExport ? { output: "export" as const } : {}),
+  // trailingSlash makes the export emit <route>/index.html rather than
+  // <route>.html, so every route resolves on a plain static host.
+  ...(isExport ? { output: "export" as const, trailingSlash: true } : {}),
   ...(basePath ? { basePath, assetPrefix: basePath } : {}),
   images: {
     formats: ["image/avif", "image/webp"],
