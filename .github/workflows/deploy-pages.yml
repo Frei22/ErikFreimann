@@ -36,12 +36,14 @@ jobs:
       - name: Build static export
         env:
           NEXT_OUTPUT: export
-          # A project site lives at https://<user>.github.io/<repo>.
-          # Serving from a custom domain or <user>.github.io? Set this to "".
-          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
           # Lifts the anonymous GitHub API rate limit for the repo feed.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build
+        # A project site lives at https://<user>.github.io/<repo>, so the base
+        # path is the repo name. GITHUB_REPOSITORY is set on every event type,
+        # including schedule — github.event.repository is not.
+        # Moving to a custom domain or a <user>.github.io repo? Set this to "".
+        run: |
+          NEXT_PUBLIC_BASE_PATH="/${GITHUB_REPOSITORY#*/}" npm run build
 
       - name: Disable Jekyll processing
         run: touch out/.nojekyll
