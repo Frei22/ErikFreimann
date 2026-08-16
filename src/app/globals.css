@@ -1,42 +1,56 @@
 @import "tailwindcss";
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Vallée Blanche — three colours, no more.
+
+   paper and ink are lifted straight out of the ASCII plate in
+   /public/ascii/vallee-blanche.txt, so the hero canvas and the page it
+   sits on are literally the same two values. green is the one accent:
+   links, marks, the descent line. Everything else is those three mixed.
+   ───────────────────────────────────────────────────────────────────── */
+
 @theme {
-  /* Type */
-  --font-anton: var(--f-anton), "Arial Narrow", Impact, sans-serif;
-  --font-bricolage: var(--f-bricolage), "Helvetica Neue", Arial, sans-serif;
   --font-fraunces: var(--f-fraunces), Georgia, "Times New Roman", serif;
   --font-inter: var(--f-inter), system-ui, sans-serif;
   --font-mono: var(--f-mono), ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* A — takeover: black + acid */
-  --color-a-bg: #050505;
-  --color-a-ink: #f2f2ef;
-  --color-a-muted: #6d6d68;
-  --color-a-line: #1c1c1a;
-  --color-a-accent: #d8ff00;
+  --color-paper: #faf8f3;
+  --color-ink: #1a1e26;
+  --color-green: #2f5d3a;
 
-  /* B — pop: cream + orange + cobalt */
-  --color-b-bg: #f2e9dc;
-  --color-b-ink: #0d0d0d;
-  --color-b-muted: #6a6257;
-  --color-b-orange: #ff4a17;
-  --color-b-cobalt: #2b3ff7;
+  /* ink over paper at 62% / 12% / 5% — precomputed so they stay exact. */
+  --color-muted: #6f7174;
+  --color-line: #dfdedb;
+  --color-faint: #efede9;
+}
 
-  /* C — cinema: warm ivory + ink + burnt red */
-  --color-c-bg: #ece6da;
-  --color-c-ink: #16130f;
-  --color-c-muted: #7a7266;
-  --color-c-line: #d3ccbd;
-  --color-c-accent: #b23a2e;
+:root {
+  color-scheme: light;
 }
 
 html {
   -webkit-text-size-adjust: 100%;
+  scroll-behavior: auto;
 }
 
 body {
+  background: var(--color-paper);
+  color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-green);
+  color: var(--color-paper);
+}
+
+/* Tabular figures everywhere a number has to hold still — the altimeter
+   counts down every frame, and jittering digit widths read as a glitch. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 /* Lenis */
@@ -51,7 +65,11 @@ html.lenis body {
   overflow: hidden;
 }
 
-/* GSAP-animated elements stay hidden only while JS is going to animate them. */
+/* ── Reveal primitives ───────────────────────────────────────────────────
+   Two moves for the whole site: type rises out of a mask, rules draw
+   themselves. Hidden up front so nothing flashes before GSAP takes over;
+   .motion-ready is set the moment the client decides what to do, including
+   when it decides to do nothing.                                          */
 .js-anim {
   visibility: hidden;
 }
@@ -59,85 +77,159 @@ html.motion-ready .js-anim {
   visibility: visible;
 }
 
-/* Rolling letter hover (see RollingText) */
-.roll .roll-in,
-.roll .roll-out {
-  transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+.mask-line {
+  display: block;
+  overflow: hidden;
 }
-.roll .roll-out {
-  transform: translateY(105%);
-}
-.roll:hover .roll-in,
-.group:hover .roll .roll-in,
-a:hover .roll .roll-in,
-button:hover .roll .roll-in {
-  transform: translateY(-105%);
-}
-.roll:hover .roll-out,
-.group:hover .roll .roll-out,
-a:hover .roll .roll-out,
-button:hover .roll .roll-out {
-  transform: translateY(0);
+.mask-line > * {
+  display: block;
+  will-change: transform;
 }
 
-/* Nav takes a ground once the hero is behind you, so nothing collides with it. */
-.cinema-nav {
+/* ── Links ──────────────────────────────────────────────────────────────
+   A green rule wipes in from the left. No underline-offset guesswork —
+   it is a pseudo-element, so it never collides with descenders.           */
+.wipe {
+  position: relative;
+  display: inline-block;
+}
+.wipe::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.14em;
+  height: 1px;
+  background: var(--color-green);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.wipe:hover::after,
+a:hover .wipe::after,
+a:focus-visible .wipe::after {
+  transform: scaleX(1);
+}
+
+/* Work index: the whole row is the target, so the mark travels with it. */
+.row-mark {
   transition:
-    background-color 0.35s ease,
-    backdrop-filter 0.35s ease,
-    border-color 0.35s ease;
-  border-bottom: 1px solid transparent;
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.35s ease;
+  transform: translateX(-0.6rem);
+  opacity: 0;
 }
-.cinema-nav.is-solid {
-  background-color: color-mix(in srgb, var(--bg) 85%, transparent);
-  backdrop-filter: blur(10px);
-  border-bottom-color: var(--line);
-}
-
-/* Hide the native cursor only where a custom one is drawn. */
-@media (pointer: fine) and (min-width: 1024px) {
-  .hide-cursor,
-  .hide-cursor * {
-    cursor: none;
-  }
+.row:hover .row-mark,
+.row:focus-visible .row-mark,
+.row[data-active="true"] .row-mark {
+  transform: translateX(0);
+  opacity: 1;
 }
 
 *:focus-visible {
-  outline: 2px solid currentColor;
+  outline: 2px solid var(--color-green);
   outline-offset: 3px;
-  border-radius: 2px;
+  border-radius: 1px;
 }
 
-/* Hard rule: no motion means no motion. */
+/* The scroll cue: a hairline that keeps falling. */
+.hero-cue {
+  transform-origin: top;
+  animation: cue-fall 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes cue-fall {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  35% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  70%,
+  100% {
+    transform: scaleY(0) translateY(2rem);
+    opacity: 0;
+  }
+}
+
+/* ── Hero collapse ──────────────────────────────────────────────────────
+   Two cases want the same shape: a reader who has asked for no motion, and
+   a plate that failed to load. In both the flight is off, so the sticky
+   column becomes ordinary flow — plate, then title, then the line — and the
+   section stops claiming five screens of scroll it no longer uses.         */
+.hero-flat {
+  height: auto !important;
+}
+.hero-flat .hero-stick {
+  position: static !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+.hero-flat .hero-canvas,
+.hero-flat .hero-scrim {
+  display: none;
+}
+.hero-flat .hero-copy,
+.hero-flat .hero-statement {
+  position: static !important;
+  inset: auto !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+.hero-flat .hero-copy {
+  padding-top: 22svh;
+  padding-bottom: 8svh;
+}
+.hero-flat .hero-statement {
+  padding-top: 14svh;
+  padding-bottom: 14svh;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  /* Pinned/scrubbed sections collapse into ordinary stacked content. */
-  .pin-scene {
-    height: auto !important;
-  }
-  .pin-sticky {
-    position: static !important;
-    height: auto !important;
-  }
-  .pin-track {
-    flex-wrap: wrap !important;
-    transform: none !important;
-    gap: 1.5rem;
-  }
-  .pin-track > * {
-    width: 100% !important;
-  }
-  .expand-frame {
-    clip-path: none !important;
-  }
-  /* Cross-fading layers become ordinary stacked content. */
-  .pin-layer {
-    position: static !important;
-    opacity: 1 !important;
+  .js-anim {
     visibility: visible !important;
+  }
+  .mask-line > * {
     transform: none !important;
   }
-  .pin-layer + .pin-layer {
-    margin-top: 2rem;
+  .hero-cue {
+    animation: none;
+  }
+
+  .hero-shell {
+    height: auto !important;
+  }
+  .hero-stick {
+    position: static !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .hero-canvas {
+    position: relative !important;
+    height: 72svh !important;
+  }
+  .hero-scrim {
+    display: none;
+  }
+  .hero-copy,
+  .hero-statement {
+    position: static !important;
+    inset: auto !important;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+  }
+  .hero-copy {
+    padding-top: 3.5rem;
+    padding-bottom: 3.5rem;
+  }
+  .hero-statement {
+    padding-top: 12svh;
+    padding-bottom: 12svh;
+  }
+  .sticky-col {
+    position: static !important;
   }
 
   *,
@@ -146,13 +238,5 @@ button:hover .roll .roll-out {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-  .js-anim {
-    visibility: visible !important;
-  }
-  .hide-cursor,
-  .hide-cursor * {
-    cursor: auto !important;
   }
 }

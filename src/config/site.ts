@@ -70,6 +70,36 @@ export const site = {
   ],
 } as const;
 
+/* ─────────────────────────────────────────────────────────────
+   THE DESCENT
+   The page is one run down the Vallée Blanche — the same route the
+   ASCII plate in the hero was made from. The altimeter bottom-left
+   reads out where you are on it, top to bottom, as you scroll.
+   ───────────────────────────────────────────────────────────── */
+
+/** Aiguille du Midi at the top, Chamonix at the bottom. Real numbers. */
+export const altitude = { top: 3842, bottom: 1035 } as const;
+
+/** Sections, in order. `id` doubles as the anchor and the observer target. */
+export const descent = [
+  { id: "top", index: "00", label: "Vallée Blanche" },
+  { id: "work", index: "01", label: "Selected work" },
+  { id: "case", index: "02", label: "Case study" },
+  { id: "repos", index: "03", label: "Repositories" },
+  { id: "about", index: "04", label: "About" },
+  { id: "contact", index: "05", label: "Chamonix" },
+] as const;
+
+/**
+ * The line the whiteout hands you — the first words after the hero burns
+ * out. It is the one sentence the site is allowed, so it carries the claim.
+ */
+export const statement = {
+  label: "What I do",
+  lead: "I build the whole thing — from the data model to",
+  emphasis: "the last hover state.",
+} as const;
+
 /**
  * Projects shown in the Phase 0 slices. Copy is from your brief — every claim
  * gets verified against each repo's README before the full build.
@@ -82,7 +112,15 @@ export type Project = {
   summary: string;
   detail: string;
   stack: string[];
+  /**
+   * Where the row points. Empty means there is nothing public to point at —
+   * the row renders as a plain entry rather than a link, so nobody is offered
+   * a click that lands on a 404. Checked against the API on 2026-08-16: of
+   * these four, every repo is private. Make one public and paste its URL here.
+   */
   href: string;
+  /** Which patch of the ASCII plate backs this project's detail panel. */
+  crop: { col: number; row: number; cols: number; rows: number };
 };
 
 /**
@@ -94,7 +132,8 @@ export const featuredCase = {
   name: "RoamBetter",
   year: "2025",
   role: "Design & build",
-  href: "#",
+  /** Private repo — see the note on Project["href"]. */
+  href: "",
   stack: ["Next.js", "TypeScript", "Tailwind", "Firebase", "Firestore"],
   beats: [
     {
@@ -133,7 +172,8 @@ export const projects: Project[] = [
     detail:
       "Built as lead dev in a small team: booking flow, admin tooling, and a Firebase backend the committee can run themselves.",
     stack: ["React", "TypeScript", "Vite", "Firebase", "Tailwind"],
-    href: "#",
+    href: "",
+    crop: { col: 20, row: 66, cols: 150, rows: 40 },
   },
   {
     index: "02",
@@ -145,7 +185,8 @@ export const projects: Project[] = [
     detail:
       "Firestore keeps contact details in admin-only collections, so neither side of the marketplace can route around the operator.",
     stack: ["Next.js", "TypeScript", "Tailwind", "Firebase"],
-    href: "#",
+    href: "",
+    crop: { col: 290, row: 62, cols: 150, rows: 40 },
   },
   {
     index: "03",
@@ -157,7 +198,8 @@ export const projects: Project[] = [
     detail:
       "A Cloud Function proxies Groq so the API key never ships in the client, with per-user rate limiting and a bring-your-own-key mode.",
     stack: ["Flutter", "Dart", "Firebase", "Groq AI"],
-    href: "#",
+    href: "",
+    crop: { col: 560, row: 58, cols: 150, rows: 40 },
   },
   {
     index: "04",
@@ -169,6 +211,7 @@ export const projects: Project[] = [
     detail:
       "Kept in the portfolio deliberately: it shows the range, and that I could build and ship before the tooling did any of it for me.",
     stack: ["HTML", "CSS", "JavaScript"],
-    href: "#",
+    href: "",
+    crop: { col: 800, row: 22, cols: 150, rows: 40 },
   },
 ];

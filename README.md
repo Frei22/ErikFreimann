@@ -1,139 +1,147 @@
 # Erik Freimann — Portfolio
 
 Personal portfolio and case-study site. Next.js (App Router) + TypeScript + Tailwind CSS,
-with GSAP (ScrollTrigger + SplitText) and Lenis for motion.
+with GSAP for the reveals and Lenis for smooth scroll.
 
-- `/` — the site: warm paper ground, deep green accent
-- `/preview/night` — the same page on a dark ground, to compare (not indexed)
+The page is one run down the **Vallée Blanche** — 3842 m at the top of the ASCII plate,
+1035 m in Chamonix at the footer. The altimeter bottom-left reads out where you are on it.
 
 ---
 
-## Run it on your machine
+## The hero
+
+`public/ascii/vallee-blanche.txt` is a 1000 × 263 character plate — a photograph of the
+Vallée Blanche turned into ASCII. Scrolling flies into the sun at the top right until the
+picture burns out to flat paper, and the site's first line arrives out of that light.
+
+The renderer ([`src/lib/ascii/renderer.ts`](src/lib/ascii/renderer.ts)) draws it twice,
+because the two ends of the zoom want opposite things:
+
+- **A raster.** The whole plate rendered once into an offscreen canvas, then scaled. Flat
+  cost. Drawing 263 000 glyphs with `fillText` every frame is tens of milliseconds, and at
+  2 px a glyph is texture, not a character.
+- **Live text**, culled to the visible window — so its cost *falls* as the zoom rises, and
+  the close approach is nearly free.
+
+Between 7 and 14 device pixels per cell the text fades in over the raster. Both derive
+their geometry from the same cell size, so they land on each other and the crossfade reads
+as a lens pulling focus.
+
+Two details worth knowing before you change anything there:
+
+- `RASTER_WEIGHT` exists because a glyph stem cannot be thinner than one pixel. At the ~9 px
+  font the raster uses, every stroke is fatter in proportion than the same glyph drawn
+  large, and the plate comes out a flat grey mass. Pulling the ink back fixes it — and
+  lines the raster up tonally with the live text that replaces it.
+- The plate is 2 : 1. On a wide screen it is laid on the paper *whole*, high in the frame,
+  because filling a landscape viewport means cropping a fifth off each side and throwing
+  away the sky. A phone gets the opposite treatment — full bleed, with the resting anchor
+  already shifted toward the sun so it is on screen before you start.
+
+Regenerate the plate with `build_hero.py` in the source folder, or drop in any grid of the
+same shape and update `SUN` in [`src/lib/ascii/grid.ts`](src/lib/ascii/grid.ts).
+
+## Colour
+
+Three values, no more. `paper` and `ink` are lifted straight out of the plate, so the hero
+canvas and the page it sits on are literally the same two colours. `green` is the only
+accent. Everything else — muted text, hairlines, panel grounds — is those three mixed, and
+the mixes are precomputed in [`src/app/globals.css`](src/app/globals.css) so they stay exact.
+
+| Token | Value | |
+| --- | --- | --- |
+| `paper` | `#faf8f3` | the ground |
+| `ink` | `#1a1e26` | 15.7 : 1 on paper |
+| `green` | `#2f5d3a` | 7.2 : 1 on paper |
+| `muted` | `#6f7174` | ink at 62% — 4.6 : 1, passes AA for body |
+
+## Motion
+
+Two moves for the whole site: type rises out of a mask, and rules draw themselves. That is
+the entire vocabulary — everything else is the hero.
+
+`prefers-reduced-motion` is honoured throughout: the flight is off, Lenis never
+initialises, and the sticky column collapses so the plate, the title and the line it hands
+off to become three ordinary blocks. Same content, no motion.
+
+---
+
+## Run it
 
 ```bash
-git clone https://github.com/Frei22/ErikFreimann.git
-cd ErikFreimann
 npm install
 npm run dev
 ```
 
-Open <http://localhost:3000>.
+Open <http://localhost:3000>. For a phone on the same Wi-Fi, `npm run dev -- -H 0.0.0.0`,
+then open `http://<your-local-ip>:3000`.
 
-### View it on your phone
+## Deploy
 
-Same Wi-Fi as your computer, then bind the dev server to your network:
+Both shapes come out of one config.
 
-```bash
-npm run dev -- -H 0.0.0.0
-```
+**GitHub Pages** — [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)
+already does it. Set repo **Settings → Pages → Source → "GitHub Actions"** once; after that
+every push to `main` publishes to <https://frei22.github.io/ErikFreimann/>, and a nightly
+run refreshes the repo feed (a static export bakes it in at build time).
 
-Find your computer's local IP — `ipconfig` on Windows, `ipconfig getifaddr en0` on macOS,
-`hostname -I` on Linux — and open `http://<that-ip>:3000` on the phone. It looks like
-`http://192.168.1.42:3000`.
+**Vercel** — import the repo, accept every default. No environment variables. The repo feed
+refetches hourly on its own.
 
----
-
-## Put it online
-
-### Option A — Vercel (recommended)
-
-1. Go to [vercel.com/new](https://vercel.com/new) and import `Frei22/ErikFreimann`.
-2. Accept every default and deploy. No environment variables needed.
-
-You get a URL like `erikfreimann.vercel.app`, and every push to `main` redeploys. The
-GitHub repo feed refreshes hourly on its own.
-
-### Option B — GitHub Pages (no other account needed)
-
-The workflow in [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)
-is already set up. Two steps:
-
-1. Merge this branch into `main`.
-2. Repo **Settings → Pages → Source → "GitHub Actions"**.
-
-The site publishes to `https://frei22.github.io/ErikFreimann/` on every push to `main`,
-and rebuilds nightly to pick up new repos. (A static export bakes the GitHub data in at
-build time, hence the nightly run.)
-
-Using a custom domain or a `frei22.github.io` repo later? Set `NEXT_PUBLIC_BASE_PATH` to
-`""` in the workflow — it exists because a project site is served from `/<repo>`, not the
-domain root.
-
-Set `site.url` in the config to whichever URL you end up on, so link previews resolve.
-
----
+Moving to a custom domain or a `frei22.github.io` repo? Set `NEXT_PUBLIC_BASE_PATH` to `""`
+in the workflow — it exists because a project site is served from `/<repo>`, not the root —
+and update `site.url` so link previews resolve.
 
 ## Configuration
 
 Everything personal lives in [`src/config/site.ts`](src/config/site.ts). Edit that file and
-the whole site follows.
-
-**Please check these — I inferred them and could not verify them from my sandbox:**
-
-| Field | Current value | Why it matters |
-| --- | --- | --- |
-| `githubUsername` | `frei22` | Wrong value = the "All projects" grid renders its fallback |
-| `email` | `erik1.freimann2@gmail.com` | It's the main call to action, in the hero and the footer |
-| `featuredRepos` | guessed slugs | These are excluded from the grid so they don't duplicate the case studies |
-| `hiddenRepos` | empty | Anything listed here never appears |
-| `socials` | LinkedIn is blank | Blank socials are skipped in the footer |
-
-Project copy in the same file (`projects`, `featuredCase`, `about`) is drafted from what
-you told me — it has **not** been checked against the repo READMEs yet.
+the whole site follows: the descent's section list, the altitudes, the statement the
+whiteout hands you, the projects, and which patch of the plate backs each project's panel.
 
 ## The GitHub feed
 
-[`src/lib/github.ts`](src/lib/github.ts) fetches public repos for `githubUsername`, drops
-forks, archived repos, anything in `hiddenRepos`, and the featured repos, then sorts by
-stars and recency. It runs on the server — hourly on Vercel, at build time for a static
-export — so no API key ships to the browser.
-
-It never throws: if GitHub is unreachable or rate-limited, the section shows a link to your
-profile instead of an empty grid. Anonymous requests are limited to 60/hour; CI passes
-`GITHUB_TOKEN` automatically to lift that.
+[`src/lib/github.ts`](src/lib/github.ts) fetches public repos, drops forks, archived repos,
+anything in `hiddenRepos`, and the featured repos, then sorts by stars and recency. It runs
+on the server — hourly on Vercel, at build time for a static export — so no key ships to
+the browser. It never throws: if GitHub is unreachable or rate-limited, the section shows a
+link to the profile rather than an empty grid.
 
 ## Layout of the code
 
 ```
 src/
-  app/                     routes, metadata, global CSS
-  components/cinema/       the page — hero, scenes, sections, theme
-  components/              reusable bits (marquee, rolling text, magnetic, cursor, grain)
+  app/                     routes, metadata, global CSS + design tokens
+  components/ascii/        the hero flight, and the plate crops in the work panel
+  components/sections/     work, case study, repos, about, contact
+  components/site/         nav, altimeter, the two reveal primitives
   config/site.ts           everything personal
-  lib/                     motion setup, Lenis, GitHub fetch, asset paths
-public/art/                generated placeholder posters (node scripts/generate-art.mjs)
+  lib/ascii/               plate loader + the two-path renderer
+  lib/                     GSAP setup, Lenis, GitHub fetch, base-path helper
+public/ascii/              the 1000 × 263 plate (~75 KB gzipped)
 ```
 
-Switching the ground is one line in `src/app/page.tsx`: swap `PAPER` for `NIGHT`. Themes
-live in [`src/components/cinema/theme.ts`](src/components/cinema/theme.ts).
-
-## Motion
-
-- Lenis smooth scroll runs off the GSAP ticker, so both share one rAF loop and one layout
-  pass per frame.
-- Everything animates transform/opacity only; pointer effects use `gsap.quickTo`.
-- `prefers-reduced-motion` is honoured throughout: intro timelines are skipped with the
-  final state shown, Lenis never initialises, the custom cursor and marquees stay put, and
-  pinned/scrubbed scenes collapse into ordinary stacked content.
-
-## Screenshots
-
-`scripts/capture.sh` builds, serves on a free port, and drives Playwright over the site,
-writing frames to `/mockups`:
+## Scripts
 
 ```bash
-PORT=3100 ./scripts/capture.sh          # both pages
-PORT=3100 ./scripts/capture.sh home     # just the site
+npm run shots            # frames of the whole descent → /mockups (server on :3100)
+npm run og               # regenerate public/og.png after a name/palette change
+npm run build:export     # static export → ./out
+npm run verify:export    # serve ./out under /ErikFreimann and smoke-test it
 ```
 
-`node scripts/og.mjs` regenerates `public/og.png` (the link-preview card) after any change
-to the name, tagline or palette.
+`verify:export` is the one that matters before a Pages deploy — it serves the export from a
+sub-path the way Pages does, walks the whole page, and fails on a 404, a JS error, an
+unpainted hero, or a reveal that never fired.
 
 ## Still to do
 
-1. Confirm the config values in the table above.
-2. Read each featured repo's README and rewrite the case studies from what's actually
-   there — the copy is currently from our conversation, not the source.
-3. Replace `public/art/*.svg` with real screenshots of ALPINA, RoamBetter, the food
-   tracker and Indiska Grytan.
-4. Lighthouse pass on a real mid-range phone.
+1. **Make a repo public, or the work index stays unlinked.** Every featured project —
+   StiLU, RoamBetter, mat_ai, Indiska-grytan — is private, so those rows deliberately
+   render as plain entries marked *Private repo* rather than links to a 404. Paste a URL
+   into `href` in `src/config/site.ts` and the row becomes a link.
+2. **Add descriptions to `ErikFreimann` and `SkaneWakePark` on GitHub** — they are the only
+   two public repos, and the feed shows `—` where the description would be.
+3. Fill in the LinkedIn URL in `socials` (blank socials are skipped).
+4. Verify the case-study copy against the repos — it is still drafted from conversation,
+   not read from the source.
+5. Lighthouse pass on a real mid-range phone.

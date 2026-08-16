@@ -3,14 +3,13 @@
 import { useEffect, useLayoutEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { SplitText } from "gsap/SplitText";
 
 let registered = false;
 
 /** Register GSAP plugins exactly once, client-side. */
 export function registerGsap() {
   if (registered || typeof window === "undefined") return;
-  gsap.registerPlugin(ScrollTrigger, SplitText);
+  gsap.registerPlugin(ScrollTrigger);
   registered = true;
 }
 
@@ -34,14 +33,4 @@ export function showFinalState(scope: HTMLElement | null) {
 export const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-/** Waits for webfonts before measuring text — SplitText needs final metrics. */
-export function whenFontsReady(cb: () => void) {
-  if (typeof document === "undefined") return;
-  if (document.fonts?.status === "loaded") {
-    cb();
-    return;
-  }
-  document.fonts?.ready.then(cb) ?? cb();
-}
-
-export { gsap, ScrollTrigger, SplitText };
+export { gsap, ScrollTrigger };

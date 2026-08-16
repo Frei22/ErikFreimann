@@ -6,6 +6,9 @@ export type Repo = {
   language: string;
   stars: number;
   url: string;
+  /** Last push, as YYYY.MM. A build-time snapshot on a static export — it is
+   *  the repo's own push date, so it stays true between rebuilds. */
+  pushed: string;
 };
 
 type ApiRepo = {
@@ -72,6 +75,7 @@ export async function getRepos(limit = 9): Promise<Repo[]> {
         language: repo.language ?? "",
         stars: repo.stargazers_count,
         url: repo.html_url,
+        pushed: repo.pushed_at.slice(0, 7).replace("-", "."),
       }));
   } catch (error) {
     console.warn("[github] repo fetch failed:", error);

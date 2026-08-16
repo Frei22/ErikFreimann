@@ -1,34 +1,41 @@
 /**
- * Captures each direction at the moments that actually matter — the hero, the
- * signature interaction, and a hover state — at desktop and mobile widths.
- * Frames are viewport-sized on purpose: these pages use pinned and sticky
- * scenes, which a full-page capture would flatten into nonsense.
+ * Captures the descent at the moments that matter, desktop and mobile.
+ * Frames are viewport-sized on purpose: the hero is a sticky canvas, which a
+ * full-page capture would flatten into nonsense.
  *
- * Usage: node scripts/screenshot.mjs [baseUrl]
+ * Usage:  node scripts/screenshot.mjs [baseUrl]
+ *
+ * `flight` steps are given as hero progress 0 → 1 and converted to an
+ * absolute scroll position; `to` steps scroll to a selector.
  */
-import { chromium } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { chromium } from "@playwright/test";
 
 const BASE = process.argv[2] ?? "http://127.0.0.1:3100";
-const OUT = new URL("../mockups/", import.meta.url).pathname;
-const EXECUTABLE =
-  process.env.CHROMIUM_PATH ?? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+const OUT = fileURLToPath(new URL("../mockups/", import.meta.url));
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** Wheel-scroll to an absolute Y, letting Lenis ease into place. */
-async function scrollTo(page, targetY) {
-  for (let i = 0; i < 60; i++) {
-    const current = await page.evaluate(() => window.scrollY);
-    const delta = targetY - current;
-    if (Math.abs(delta) < 24) break;
-    await page.mouse.wheel(0, Math.max(-900, Math.min(900, delta)));
-    await wait(140);
-  }
-  await wait(900);
+/** Land exactly, via Lenis, then let the hero's follow lerp settle. */
+async function scrollTo(page, y) {
+  await page.evaluate((target) => {
+    const lenis = window.__lenis;
+    if (lenis) lenis.scrollTo(target, { immediate: true, force: true });
+    else window.scrollTo(0, target);
+  }, y);
+  await wait(1100);
 }
 
-/** Absolute document Y of a marked element, offset by a fraction of viewport. */
+async function flightY(page, progress) {
+  return page.evaluate((p) => {
+    const shell = document.querySelector(".hero-shell");
+    const stick = document.querySelector(".hero-stick");
+    if (!shell || !stick) return 0;
+    return (shell.offsetHeight - stick.offsetHeight) * p;
+  }, progress);
+}
+
 async function anchorY(page, selector, offsetVh = 0) {
   return page.evaluate(
     ([sel, off]) => {
@@ -40,27 +47,28 @@ async function anchorY(page, selector, offsetVh = 0) {
   );
 }
 
-/**
- * `to: [selector, offsetVh]` scrolls until that element's top sits offsetVh
- * viewports above the fold — positive numbers go deeper into the section.
- */
 const STEPS = [
-  { name: "1-hero" },
-  { name: "2-camera-open", to: ['[data-shot="camera"]', 0.75] },
-  { name: "3-gallery", to: ['[data-shot="gallery"]', 1.6] },
-  { name: "4-case-study", to: ['[data-shot="case"]', 1.0] },
-  { name: "5-repos", to: ['[data-shot="repos"]', -0.05] },
-  { name: "6-about", to: ['[data-shot="about"]', 0.15] },
-  { name: "7-contact", to: ['[data-shot="contact"]', 2] },
-  { name: "8-contact-hover", hover: '[data-shot="email"]' },
+  { name: "01-hero" },
+  { name: "02-flight-early", flight: 0.22 },
+  { name: "03-flight-mid", flight: 0.46 },
+  { name: "04-flight-close", flight: 0.66 },
+  { name: "05-whiteout", flight: 0.79 },
+  { name: "06-statement", flight: 0.93 },
+  { name: "07-work", to: ["#work", 0.06] },
+  { name: "08-work-hover", hover: "#work li:nth-child(3) .row" },
+  { name: "09-case", to: ["#case", 0.06] },
+  { name: "10-case-deep", to: ["#case", 0.9] },
+  { name: "11-repos", to: ["#repos", 0.06] },
+  { name: "12-about", to: ["#about", 0.06] },
+  { name: "13-contact", to: ["#contact", 0.2] },
 ];
 
-const PAGES_MAP = {
-  home: { path: "/", steps: STEPS, mobileFrames: 5 },
-  night: { path: "/preview/night", steps: STEPS.slice(0, 4), mobileFrames: 2 },
-};
+const VIEWPORTS = [
+  { label: "desktop", width: 1440, height: 900, dsf: 2 },
+  { label: "mobile", width: 390, height: 844, dsf: 3, mobile: true },
+];
 
-async function shoot(browser, id, vp) {
+async function shoot(browser, vp) {
   const context = await browser.newContext({
     viewport: { width: vp.width, height: vp.height },
     deviceScaleFactor: vp.dsf,
@@ -68,46 +76,43 @@ async function shoot(browser, id, vp) {
     hasTouch: Boolean(vp.mobile),
   });
   const page = await context.newPage();
-  await page.goto(`${BASE}${PAGES_MAP[id].path}`, { waitUntil: "networkidle" });
 
-  await page
-    .waitForFunction(() => document.documentElement.dataset.animDone === "true", null, {
-      timeout: 20000,
-    })
-    .catch(() => console.warn(`  ! ${id}/${vp.label}: intro did not report done`));
-  await wait(800);
+  const problems = [];
+  page.on("pageerror", (e) => problems.push(`JS ${e.message.slice(0, 160)}`));
+  page.on("response", (r) => {
+    if (r.status() >= 400) problems.push(`${r.status()} ${r.url()}`);
+  });
 
-  const { steps: all, mobileFrames } = PAGES_MAP[id];
-  const steps = vp.mobile ? all.slice(0, mobileFrames) : all;
+  await page.goto(BASE, { waitUntil: "networkidle" });
+  await wait(1400); // plate fetch + rasterise
 
-  for (const step of steps) {
+  for (const step of STEPS) {
+    if (step.flight !== undefined) await scrollTo(page, await flightY(page, step.flight));
     if (step.to) await scrollTo(page, await anchorY(page, step.to[0], step.to[1]));
-    if (step.hover && !vp.mobile) {
+    if (step.hover) {
+      if (vp.mobile) continue;
       const box = await page.locator(step.hover).boundingBox();
       if (box) {
-        await page.mouse.move(box.x + box.width * 0.35, box.y + box.height / 2, { steps: 12 });
-        await wait(1300);
+        await page.mouse.move(box.x + box.width * 0.3, box.y + box.height / 2, { steps: 10 });
+        await wait(900);
       }
     }
-    await page.screenshot({ path: `${OUT}${id}-${vp.label}-${step.name}.png` });
+    await page.screenshot({ path: `${OUT}${vp.label}-${step.name}.png` });
   }
 
-  console.log(`  ✓ ${id} ${vp.label}`);
+  console.log(`  ${vp.label}: ${problems.length ? problems.slice(0, 6).join(" | ") : "clean"}`);
   await context.close();
+  return problems.length;
 }
 
-const VIEWPORTS = [
-  { label: "desktop", width: 1440, height: 900, dsf: 2 },
-  { label: "mobile", width: 390, height: 844, dsf: 3, mobile: true },
-];
-
-// Optional second arg limits which pages to shoot, e.g. "home".
-const PAGES = process.argv[3] ? process.argv[3].split(",") : Object.keys(PAGES_MAP);
-
-const browser = await chromium.launch({ executablePath: EXECUTABLE });
+const browser = await chromium.launch(
+  process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {},
+);
 await mkdir(OUT, { recursive: true });
-for (const id of PAGES) {
-  for (const vp of VIEWPORTS) await shoot(browser, id, vp);
-}
+
+let failures = 0;
+for (const vp of VIEWPORTS) failures += await shoot(browser, vp);
 await browser.close();
+
 console.log(`\nSaved to ${OUT}`);
+if (failures) process.exitCode = 1;
