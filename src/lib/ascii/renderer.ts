@@ -20,6 +20,9 @@ import { GRID_ASPECT, SUN, type AsciiGrid } from "./grid";
 
 export type RendererTheme = { ink: string; paper: string };
 
+/** Where the plate sits this frame, in CSS px. */
+type Geometry = { ox: number; oy: number; cellW: number; cellH: number };
+
 /**
  * The plate's font stack, exactly as the original page had it.
  *
@@ -110,10 +113,6 @@ const PHONE_VISIBLE_WIDTH = 0.55;
  * of a cell rather than a third of one.
  */
 
-/** Device px per cell where crisp text starts fading in, and takes over. */
-const TEXT_IN = 7;
-const TEXT_FULL = 13;
-
 /**
  * Bitmap resolution, as a multiple of the cell size at zoom 1. At exactly this
  * zoom the blit is 1 : 1 and identical to live text; below it the bitmap is
@@ -146,6 +145,9 @@ export class AsciiRenderer {
   /** Cell width the bitmap was drawn at, in its own pixels. */
   private rasterCell = 0;
   private builtRows = 0;
+
+  private blend: HTMLCanvasElement | null = null;
+  private blendCtx: CanvasRenderingContext2D | null = null;
 
   constructor(canvas: HTMLCanvasElement, grid: AsciiGrid, theme: RendererTheme) {
     // Keeping the alpha channel matters: on an opaque canvas Chromium picks
@@ -252,6 +254,78 @@ export class AsciiRenderer {
     };
   }
 
+  /** The viewport-sized scratch canvas the handover mixes through. */
+  private layer(): CanvasRenderingContext2D | null {
+    if (!this.blendCtx) {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return null;
+      this.blend = canvas;
+      this.blendCtx = ctx;
+    }
+
+    const w = Math.round(this.vw * this.dpr);
+    const h = Math.round(this.vh * this.dpr);
+    if (this.blend && (this.blend.width !== w || this.blend.height !== h)) {
+      this.blend.width = w;
+      this.blend.height = h;
+      this.blendCtx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    }
+    return this.blendCtx;
+  }
+
+  private paintPaper(ctx: CanvasRenderingContext2D) {
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = this.theme.paper;
+    ctx.fillRect(0, 0, this.vw, this.vh);
+  }
+
+  /** The wide shot, where a snapped baseline is a third of a cell and every
+   *  row would twitch on its own. */
+  private paintBitmap(ctx: CanvasRenderingContext2D, g: Geometry) {
+    if (!this.raster || this.builtRows < 1) return;
+    const shown = this.builtRows / this.grid.rows.length;
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(
+      this.raster,
+      0,
+      0,
+      this.raster.width,
+      this.raster.height * shown,
+      g.ox,
+      g.oy,
+      this.grid.cols * g.cellW,
+      this.builtRows * g.cellH,
+    );
+  }
+
+  /** The close approach, where the cells are big and crisp type is the point. */
+  private paintText(ctx: CanvasRenderingContext2D, g: Geometry) {
+    const { cols, rows } = this.grid;
+    const { ox, oy, cellW, cellH } = g;
+
+    // Cull to the visible window, so cost stays flat as we zoom in.
+    const c0 = Math.max(0, Math.floor(-ox / cellW));
+    const c1 = Math.min(cols, Math.ceil((this.vw - ox) / cellW));
+    const r0 = Math.max(0, Math.floor(-oy / cellH));
+    const r1 = Math.min(rows.length, Math.ceil((this.vh - oy) / cellH));
+    if (c1 <= c0 || r1 <= r0) return;
+
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = this.theme.ink;
+    ctx.font = `${cellW / this.advance}px ${PLATE_FONT}`;
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
+
+    const x = ox + c0 * cellW;
+    for (let r = r0; r < r1; r++) {
+      // One run per row — monospace guarantees it lands on the grid.
+      ctx.fillText(rows[r].slice(c0, c1), x, oy + r * cellH + cellH / 2);
+    }
+  }
+
   /**
    * @param progress 0 = the whole plate, 1 = bare light.
    */
@@ -293,51 +367,50 @@ export class AsciiRenderer {
     const ox = vw / 2 - fx * cellW;
     const oy = vh * (restY + (0.5 - restY) * e) - fy * cellH;
 
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = this.theme.paper;
-    ctx.fillRect(0, 0, vw, vh);
+    const geom = { ox, oy, cellW, cellH };
 
-    const textAlpha = clamp01((cellW * this.dpr - TEXT_IN) / (TEXT_FULL - TEXT_IN));
+    /**
+     * How much of the picture is live text rather than the bitmap.
+     *
+     * Both thresholds come off the bitmap's own resolution, not fixed numbers.
+     * The handover starts exactly where the blit is 1 : 1 — the one point where
+     * the two are the same rasterisation and so the same weight — and finishes
+     * three times further in, by which point a snapped baseline is about 3% of
+     * a row rather than a third of one. Below 1 : 1 the bitmap is supersampled
+     * down, which is if anything finer than live text, so there is no reason to
+     * start earlier.
+     */
+    const blend = clamp01(
+      (cellW * this.dpr - this.rasterCell) / (this.rasterCell * 3 - this.rasterCell),
+    );
 
-    // The bitmap carries the wide shot, where a snapped baseline is a third of
-    // a cell and every row twitches on its own.
-    if (textAlpha < 1 && this.raster && this.builtRows > 0) {
-      const shown = this.builtRows / nRows;
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(
-        this.raster,
-        0,
-        0,
-        this.raster.width,
-        this.raster.height * shown,
-        ox,
-        oy,
-        cols * cellW,
-        this.builtRows * cellH,
-      );
-    }
+    if (blend >= 1) {
+      this.paintPaper(ctx);
+      this.paintText(ctx, geom);
+    } else if (blend <= 0) {
+      this.paintPaper(ctx);
+      this.paintBitmap(ctx, geom);
+    } else {
+      // Cross-fading two layers by drawing one over the other at partial alpha
+      // does not average them — where both are solid ink the result comes out
+      // lighter than either, so the picture dips in weight halfway through the
+      // handover and reads as a flicker. Compositing the finished text frame
+      // over the finished bitmap frame is a true linear mix, so the weight
+      // holds and only the sharpness changes.
+      const layer = this.layer();
+      if (layer) {
+        this.paintPaper(ctx);
+        this.paintBitmap(ctx, geom);
 
-    if (textAlpha > 0) {
-      // Cull to the visible window, so cost stays flat as we zoom in.
-      const c0 = Math.max(0, Math.floor(-ox / cellW));
-      const c1 = Math.min(cols, Math.ceil((vw - ox) / cellW));
-      const r0 = Math.max(0, Math.floor(-oy / cellH));
-      const r1 = Math.min(nRows, Math.ceil((vh - oy) / cellH));
+        this.paintPaper(layer);
+        this.paintText(layer, geom);
 
-      if (c1 > c0 && r1 > r0) {
-        // The font is already set — see the cell-width note above.
-        ctx.globalAlpha = textAlpha;
-        ctx.fillStyle = this.theme.ink;
-        ctx.textBaseline = "middle";
-        ctx.textAlign = "left";
-
-        const x = ox + c0 * cellW;
-        for (let r = r0; r < r1; r++) {
-          // One run per row — monospace guarantees it lands on the grid.
-          ctx.fillText(rows[r].slice(c0, c1), x, oy + r * cellH + cellH / 2);
-        }
+        ctx.globalAlpha = blend;
+        ctx.drawImage(layer.canvas, 0, 0, vw, vh);
         ctx.globalAlpha = 1;
+      } else {
+        this.paintPaper(ctx);
+        this.paintText(ctx, geom);
       }
     }
 
@@ -354,14 +427,18 @@ export class AsciiRenderer {
   }
 
   destroy() {
-    // Free the backing store rather than waiting for collection — it is the
-    // largest single allocation on the page.
-    if (this.raster) {
-      this.raster.width = 0;
-      this.raster.height = 0;
+    // Free the backing stores rather than waiting for collection — between
+    // them they are the largest allocation on the page.
+    for (const canvas of [this.raster, this.blend]) {
+      if (canvas) {
+        canvas.width = 0;
+        canvas.height = 0;
+      }
     }
     this.raster = null;
     this.rasterCtx = null;
+    this.blend = null;
+    this.blendCtx = null;
   }
 }
 
