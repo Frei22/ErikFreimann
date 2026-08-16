@@ -3,7 +3,9 @@
 import { useRef } from "react";
 import { AsciiPlate } from "@/components/ascii/AsciiPlate";
 import { Mask, useReveal } from "@/components/site/Reveal";
-import { projects, work, type Project } from "@/config/site";
+import { useCopy } from "@/components/CopyProvider";
+import type { ProjectCopy } from "@/config/copy";
+import { projects } from "@/config/site";
 import { SectionHead } from "./SectionHead";
 
 /**
@@ -13,7 +15,19 @@ import { SectionHead } from "./SectionHead";
  * pinned: the page keeps moving under your finger the whole way, which is the
  * difference between a section that reads and one that holds you hostage.
  */
-function Entry({ project }: { project: Project }) {
+type ProjectMeta = (typeof projects)[number];
+
+function Entry({
+  project,
+  text,
+  viewRepo,
+  privateRepo,
+}: {
+  project: ProjectMeta;
+  text: ProjectCopy;
+  viewRepo: string;
+  privateRepo: string;
+}) {
   return (
     <article className="border-t border-line pt-10 md:pt-14">
       <div className="grid gap-x-10 gap-y-8 md:grid-cols-12">
@@ -27,7 +41,7 @@ function Entry({ project }: { project: Project }) {
               <span className="text-green">{project.index}</span>
               <span className="text-line">/</span>
               <span className="text-muted">
-                {project.year} · {project.role}
+                {project.year} · {text.role}
               </span>
             </p>
 
@@ -59,7 +73,7 @@ function Entry({ project }: { project: Project }) {
                 className="js-anim mt-6 font-mono text-[11px] tracking-[0.16em] uppercase"
               >
                 <a href={project.href} target="_blank" rel="noreferrer">
-                  <span className="wipe">View the repo ↗</span>
+                  <span className="wipe">{viewRepo}</span>
                 </a>
               </p>
             ) : (
@@ -67,7 +81,7 @@ function Entry({ project }: { project: Project }) {
                 data-fade="0.16"
                 className="js-anim mt-6 font-mono text-[10px] tracking-[0.18em] text-muted uppercase"
               >
-                Private repo — walkthrough on request
+                {privateRepo}
               </p>
             )}
           </div>
@@ -79,11 +93,11 @@ function Entry({ project }: { project: Project }) {
             data-fade
             className="js-anim max-w-prose font-fraunces text-[clamp(1.25rem,2.6vw,1.75rem)] leading-[1.35] font-normal"
           >
-            {project.summary}
+            {text.summary}
           </p>
 
           <ol className="mt-12">
-            {project.beats.map((beat, i) => (
+            {text.beats.map((beat, i) => (
               <li
                 key={beat.title}
                 className="border-t border-line pt-7 pb-10 first:border-t-0 first:pt-0 md:pb-14"
@@ -116,11 +130,12 @@ function Entry({ project }: { project: Project }) {
 
 export function Work() {
   const scope = useRef<HTMLElement>(null);
+  const { work } = useCopy();
   useReveal(scope);
 
   return (
     <section ref={scope} id="work" className="px-5 md:px-10">
-      <SectionHead index="01" label={work.label} note={`${projects.length} projects`} />
+      <SectionHead index="01" label={work.label} note={`${projects.length} ${work.countNoun}`} />
 
       <p
         data-fade
@@ -131,7 +146,13 @@ export function Work() {
 
       <div className="mt-16 space-y-16 md:mt-24 md:space-y-24">
         {projects.map((project) => (
-          <Entry key={project.name} project={project} />
+          <Entry
+            key={project.id}
+            project={project}
+            text={work.projects[project.id]}
+            viewRepo={work.viewRepo}
+            privateRepo={work.privateRepo}
+          />
         ))}
       </div>
     </section>

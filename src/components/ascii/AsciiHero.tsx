@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { hero, site, statement } from "@/config/site";
+import { useCopy } from "@/components/CopyProvider";
+import { site } from "@/config/site";
 import { loadAsciiGrid } from "@/lib/ascii/grid";
 import { AsciiRenderer } from "@/lib/ascii/renderer";
 import { setHeroProgress } from "@/lib/heroProgress";
@@ -49,6 +50,7 @@ export function AsciiHero() {
   const scrim = useRef<HTMLDivElement>(null);
   const line = useRef<HTMLDivElement>(null);
   const [plateFailed, setPlateFailed] = useState(false);
+  const { hero, statement } = useCopy();
 
   useIsomorphicLayoutEffect(() => {
     const canvas = canvasEl.current;
@@ -74,7 +76,7 @@ export function AsciiHero() {
       }
       gsap
         .timeline({ delay: 0.12 })
-        .from("[data-mask] > *", { yPercent: 108, duration: 1.15, ease: "power4.out" })
+        .from("[data-mask] > *", { yPercent: 130, duration: 1.15, ease: "power4.out" })
         .from(
           "[data-fade]",
           { y: 16, autoAlpha: 0, duration: 0.8, ease: "power3.out", stagger: 0.08 },
@@ -220,7 +222,7 @@ export function AsciiHero() {
               data-fade="0.1"
               className="js-anim max-w-md font-inter text-[15px] leading-relaxed text-muted"
             >
-              {hero.role} — {site.location}.
+              {hero.role}.
             </p>
 
             <p

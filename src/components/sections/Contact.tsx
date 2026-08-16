@@ -2,13 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Mask, useReveal } from "@/components/site/Reveal";
-import { contact, site } from "@/config/site";
+import { useCopy } from "@/components/CopyProvider";
+import { site } from "@/config/site";
 import { SectionHead } from "./SectionHead";
 
 /** The end of the run. The email is the largest thing here, by design. */
 export function Contact() {
   const scope = useRef<HTMLElement>(null);
   const [time, setTime] = useState("");
+  const { contact } = useCopy();
   useReveal(scope);
 
   useEffect(() => {
@@ -33,7 +35,7 @@ export function Contact() {
       <SectionHead
         index="03"
         label={contact.label}
-        note={time ? <span className="tnum">{time} local</span> : null}
+        note={time ? <span className="tnum">{`${time} ${contact.localTime}`}</span> : null}
       />
 
       <h2 className="mt-12 font-fraunces text-[clamp(2rem,6vw,4.4rem)] leading-[1.02] font-normal tracking-[-0.035em] md:mt-20">

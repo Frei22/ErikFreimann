@@ -14,6 +14,8 @@ import { chromium } from "@playwright/test";
 
 const BASE = process.argv[2] ?? "http://127.0.0.1:3100";
 const OUT = fileURLToPath(new URL("../mockups/", import.meta.url));
+/** Set when shooting a second language, so the frames do not overwrite. */
+const PREFIX = process.env.SHOT_PREFIX ?? "";
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -97,7 +99,7 @@ async function shoot(browser, vp) {
         await wait(900);
       }
     }
-    await page.screenshot({ path: `${OUT}${vp.label}-${step.name}.png` });
+    await page.screenshot({ path: `${OUT}${PREFIX}${vp.label}-${step.name}.png` });
   }
 
   console.log(`  ${vp.label}: ${problems.length ? problems.slice(0, 6).join(" | ") : "clean"}`);

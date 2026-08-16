@@ -113,7 +113,29 @@ if (!heroPainted) failures.push("hero canvas never painted the plate");
 if (state.hiddenAnims) failures.push(`${state.hiddenAnims} elements still hidden after a full pass`);
 if (state.sections.length) failures.push(`missing sections: ${state.sections.join(", ")}`);
 
+// The Swedish route is a real page, not a toggle, so it gets checked as one:
+// it must exist, be marked as Swedish, carry Swedish copy, and point at its
+// English twin with hreflang.
+await page.goto(`http://127.0.0.1:${PORT}${BASE_PATH}/sv/`, { waitUntil: "networkidle" });
+await new Promise((r) => setTimeout(r, 1800));
+
+const swedish = await page.evaluate(() => ({
+  lang: document.documentElement.lang,
+  title: document.title,
+  hasSwedishCopy: document.body.textContent.includes("Utvalda projekt"),
+  alternates: [...document.querySelectorAll("link[rel='alternate'][hreflang]")].map(
+    (el) => `${el.hreflang}→${new URL(el.href).pathname}`,
+  ),
+  sections: ["top", "work", "about", "contact"].filter((id) => !document.getElementById(id)),
+}));
+
+if (swedish.lang !== "sv") failures.push(`/sv/ has lang="${swedish.lang}"`);
+if (!swedish.hasSwedishCopy) failures.push("/sv/ is not rendering Swedish copy");
+if (swedish.sections.length) failures.push(`/sv/ missing: ${swedish.sections.join(", ")}`);
+if (swedish.alternates.length < 2) failures.push("/sv/ is missing hreflang alternates");
+
 console.log("state:  ", JSON.stringify({ heroPainted, ...state }));
+console.log("svenska:", JSON.stringify(swedish));
 console.log("result: ", failures.length ? failures.slice(0, 8) : "clean");
 
 await browser.close();

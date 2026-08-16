@@ -80,6 +80,12 @@ html.motion-ready .js-anim {
 .mask-line {
   display: block;
   overflow: hidden;
+  /* Descenders sit below the line box, so a tight leading plus overflow:hidden
+     shears the tails off g, y, p and friends. Extend the clip box downward and
+     take the space straight back, so nothing moves but nothing is cut either.
+     The reveal's travel in Reveal.tsx allows for this. */
+  padding-bottom: 0.2em;
+  margin-bottom: -0.2em;
 }
 .mask-line > * {
   display: block;

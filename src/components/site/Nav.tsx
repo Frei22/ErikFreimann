@@ -1,17 +1,21 @@
 "use client";
 
 import { useRef } from "react";
-import { nav, site } from "@/config/site";
+import { useCopy } from "@/components/CopyProvider";
+import { LangSwitch } from "@/components/site/LangSwitch";
+import { site } from "@/config/site";
 import { onHeroProgress } from "@/lib/heroProgress";
 import { prefersReducedMotion, useIsomorphicLayoutEffect } from "@/lib/motion";
 
 /**
  * The bar steps aside for the flight and comes back with the light: it is
  * gone by the time the plate fills the screen, and returns as the whiteout
- * finishes. Nothing else about it moves.
+ * finishes. Past the hero it takes a paper ground, because the work section's
+ * sticky column scrolls up underneath it.
  */
 export function Nav() {
   const bar = useRef<HTMLElement>(null);
+  const copy = useCopy();
 
   useIsomorphicLayoutEffect(() => {
     // With no flight the bar never hides, so it needs its ground from the off.
@@ -29,7 +33,6 @@ export function Nav() {
       el.style.opacity = String(shown);
       el.style.transform = `translate3d(0, ${(1 - shown) * -18}px, 0)`;
       el.style.pointerEvents = shown > 0.5 ? "auto" : "none";
-      // Once the flight is over the page below is type, not picture.
       el.classList.toggle("is-solid", p > 0.98);
     });
   }, []);
@@ -37,18 +40,21 @@ export function Nav() {
   return (
     <header
       ref={bar}
-      className="site-nav fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-5 font-mono text-[11px] tracking-[0.18em] uppercase will-change-[transform,opacity] md:px-10"
+      className="site-nav fixed inset-x-0 top-0 z-50 flex items-center justify-between gap-4 px-5 py-5 font-mono text-[9.5px] tracking-[0.14em] uppercase will-change-[transform,opacity] sm:text-[11px] sm:tracking-[0.18em] md:px-10"
     >
-      <a href="#top" className="wipe">
+      <a href="#top" className="wipe shrink-0">
         {site.name}
       </a>
 
-      <nav className="flex items-center gap-5 sm:gap-8">
-        {nav.map(({ label, href }) => (
-          <a key={label} href={href} className="wipe text-muted transition-colors hover:text-ink">
+      {/* Tight on a 390px screen once the language switch is in, so the gaps
+          and the type scale down rather than the links being hidden. */}
+      <nav className="flex items-center gap-3 sm:gap-5 md:gap-7">
+        {copy.nav.map(({ label, href }) => (
+          <a key={href} href={href} className="wipe text-muted transition-colors hover:text-ink">
             {label}
           </a>
         ))}
+        <LangSwitch />
       </nav>
     </header>
   );

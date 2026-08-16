@@ -2,7 +2,8 @@
 
 import { useRef } from "react";
 import { Mask, useReveal } from "@/components/site/Reveal";
-import { about, site } from "@/config/site";
+import { useCopy } from "@/components/CopyProvider";
+import { site } from "@/config/site";
 import { SectionHead } from "./SectionHead";
 
 /**
@@ -12,11 +13,12 @@ import { SectionHead } from "./SectionHead";
  */
 export function About() {
   const scope = useRef<HTMLElement>(null);
+  const { about } = useCopy();
   useReveal(scope);
 
   return (
     <section ref={scope} id="about" className="px-5 md:px-10">
-      <SectionHead index="02" label={about.label} note={site.location} />
+      <SectionHead index="02" label={about.label} note={about.location} />
 
       <div className="mt-10 grid gap-x-10 gap-y-14 md:mt-16 md:grid-cols-12">
         <div className="md:col-span-7">
@@ -40,9 +42,9 @@ export function About() {
             className="js-anim mt-11 grid max-w-lg grid-cols-[7rem_1fr] gap-y-3 border-t border-line pt-7 font-mono text-[11px] tracking-[0.12em]"
           >
             <dt className="text-muted uppercase">{about.facts.degree}</dt>
-            <dd>{site.education}</dd>
+            <dd>{about.education}</dd>
             <dt className="text-muted uppercase">{about.facts.based}</dt>
-            <dd>{site.location}</dd>
+            <dd>{about.location}</dd>
             <dt className="text-muted uppercase">{about.facts.status}</dt>
             <dd className="text-green">{about.facts.statusValue}</dd>
           </dl>

@@ -70,7 +70,10 @@ export function useReveal(scope: RefObject<HTMLElement | null>) {
         gsap.from(
           lines.map((line) => line.firstElementChild),
           {
-            yPercent: 108,
+            // Past 100% because .mask-line's clip box now extends 0.2em below
+            // the text to save descenders — the line has to clear that too, or
+            // a sliver of it shows before the reveal starts.
+            yPercent: 130,
             duration: 1.05,
             ease: "power4.out",
             stagger: 0.075,
