@@ -27,8 +27,12 @@ export const site = {
   intro:
     "I build complete web and mobile products on my own — the app, the admin panel behind it, and the AI inside it. Computer engineering student at LTU, available for freelance work.",
 
-  /** Degree, spelled out. */
-  education: "Högskoleingenjör i datateknik, Luleå tekniska universitet",
+  /**
+   * The degree is in progress, not held — first year done, graduating 2028.
+   * The year has to be on it: "Högskoleingenjör i datateknik, LTU" on its own
+   * reads as a qualification he already has.
+   */
+  education: "Högskoleingenjör i datateknik, Luleå tekniska universitet — graduating 2028",
 
   location: "Malmö / Luleå, Sweden",
 
@@ -186,7 +190,7 @@ export const about = {
   headline: { lead: "I like the parts", emphasis: "other people skip." },
   stackLabel: "Stack",
   facts: {
-    degree: "Degree",
+    degree: "Studying",
     based: "Based",
     status: "Status",
     statusValue: "Available for freelance work",
