@@ -133,13 +133,8 @@ unpainted hero, or a reveal that never fired.
 
 ## Still to do
 
-1. **Add the LinkedIn URL** in `socials` — blank socials are skipped, so it is currently
-   absent from the footer.
-2. **Decide about the GitHub link.** The two public repos are this site and SkaneWakePark;
-   the profile link in the footer leads to them. Remove the entry if that is not the
-   impression you want.
-3. Both featured repos are private, so the work entries say *Private repo — walkthrough on
+1. Both featured repos are private, so the work entries say *Private repo — walkthrough on
    request* instead of linking. Paste a URL into `href` in `src/config/site.ts` if either
    goes public.
-4. Swedish version: duplicate `src/config/site.ts`, translate the strings, swap the import.
-5. Lighthouse pass on a real mid-range phone.
+2. Swedish version: duplicate `src/config/site.ts`, translate the strings, swap the import.
+3. Lighthouse pass on a real mid-range phone.

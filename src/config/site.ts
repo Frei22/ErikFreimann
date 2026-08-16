@@ -38,10 +38,10 @@ export const site = {
   /** Production URL, used for Open Graph / canonical tags. */
   url: "https://frei22.github.io/ErikFreimann",
 
-  /** TODO: add your LinkedIn, or delete the entry. Blank socials are skipped. */
+  /** Shown in the footer. A blank href is skipped rather than rendered dead. */
   socials: [
     { label: "GitHub", href: "https://github.com/frei22" },
-    { label: "LinkedIn", href: "" },
+    { label: "LinkedIn", href: "https://www.linkedin.com/in/erik-freimann-a42b1b294/" },
   ],
 
   /** Shown as a plain list in About. */
