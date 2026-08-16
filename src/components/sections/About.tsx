@@ -16,21 +16,19 @@ export function About() {
 
   return (
     <section ref={scope} id="about" className="px-5 md:px-10">
-      <SectionHead index="04" label="About" note={site.location} />
+      <SectionHead index="02" label={about.label} note={site.location} />
 
       <div className="mt-10 grid gap-x-10 gap-y-14 md:mt-16 md:grid-cols-12">
         <div className="md:col-span-7">
-          {/* The hero's whiteout already made the full-stack claim. This says
-              the part that actually distinguishes it. */}
           <h2 className="font-fraunces text-[clamp(1.8rem,4.4vw,3.1rem)] leading-[1.08] font-normal tracking-[-0.03em]">
-            <Mask>I like the parts</Mask>
+            <Mask>{about.headline.lead}</Mask>
             <Mask>
-              <span className="text-green italic">other people skip.</span>
+              <span className="text-green italic">{about.headline.emphasis}</span>
             </Mask>
           </h2>
 
           <div className="mt-9 max-w-prose space-y-5 font-inter text-[16px] leading-relaxed text-muted">
-            {about.map((paragraph, i) => (
+            {about.paragraphs.map((paragraph, i) => (
               <p data-fade={i * 0.06} className="js-anim" key={paragraph.slice(0, 24)}>
                 {paragraph}
               </p>
@@ -41,12 +39,12 @@ export function About() {
             data-fade="0.2"
             className="js-anim mt-11 grid max-w-lg grid-cols-[7rem_1fr] gap-y-3 border-t border-line pt-7 font-mono text-[11px] tracking-[0.12em]"
           >
-            <dt className="text-muted uppercase">Degree</dt>
+            <dt className="text-muted uppercase">{about.facts.degree}</dt>
             <dd>{site.education}</dd>
-            <dt className="text-muted uppercase">Based</dt>
+            <dt className="text-muted uppercase">{about.facts.based}</dt>
             <dd>{site.location}</dd>
-            <dt className="text-muted uppercase">Status</dt>
-            <dd className="text-green">Available for freelance work</dd>
+            <dt className="text-muted uppercase">{about.facts.status}</dt>
+            <dd className="text-green">{about.facts.statusValue}</dd>
           </dl>
         </div>
 
@@ -55,7 +53,7 @@ export function About() {
             data-fade
             className="js-anim font-mono text-[10px] tracking-[0.2em] text-muted uppercase"
           >
-            Stack
+            {about.stackLabel}
           </p>
 
           <ul

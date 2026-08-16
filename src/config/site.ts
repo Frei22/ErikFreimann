@@ -4,22 +4,28 @@
  *  Edit this file; the whole site updates.
  * ─────────────────────────────────────────────────────────────
  *
- *  ⚠ Values marked TODO were inferred and need your confirmation.
+ *  Every sentence the visitor reads lives in this file, including
+ *  section labels and headings. That is deliberate: a Swedish
+ *  version is a copy of this file with the strings translated and
+ *  a one-line swap in the import, not a trawl through components.
+ *
+ *  Plain language is a requirement, not a style. Someone running a
+ *  modelling agency has to finish a sentence and know what they
+ *  would be buying. Where a technical word is unavoidable, the
+ *  sentence around it explains itself.
  */
 
 export const site = {
   /** Your name, as it should appear in the hero and <title>. */
   name: "Erik Freimann",
 
-  /** One punchy line. Shown as the hero headline. */
-  tagline: "I build fast, modern web apps.",
-
-  /** One sentence on what you actually do. Sits under the tagline. */
-  intro:
-    "Computer engineering student at LTU building full-stack web & mobile products — React, Next.js, Flutter, Firebase. Available for freelance work.",
-
-  /** Short role line used in nav / meta. */
+  /** Short role line. Used in the page <title> and meta — kept as the term
+   *  people actually search for, even though the page itself talks plainer. */
   role: "Full-stack developer",
+
+  /** Meta description. One sentence, no jargon. */
+  intro:
+    "I build complete web and mobile products on my own — the app, the admin panel behind it, and the AI inside it. Computer engineering student at LTU, available for freelance work.",
 
   /** Degree, spelled out. */
   education: "Högskoleingenjör i datateknik, Luleå tekniska universitet",
@@ -29,169 +35,186 @@ export const site = {
   /** Confirmed against git config on Erik's machine. */
   email: "erik1.freimann2@gmail.com",
 
-  /** Confirmed against git config on Erik's machine. */
-  githubUsername: "Frei22",
-
   /** Production URL, used for Open Graph / canonical tags. */
   url: "https://frei22.github.io/ErikFreimann",
 
-  /** TODO: add your real profile URLs, or delete the ones you don't want. */
+  /** TODO: add your LinkedIn, or delete the entry. Blank socials are skipped. */
   socials: [
     { label: "GitHub", href: "https://github.com/frei22" },
     { label: "LinkedIn", href: "" },
   ],
 
-  /**
-   * Repos featured as full case studies, in display order. Excluded from the
-   * "All projects" grid so they are not listed twice. Matched
-   * case-insensitively — these are the real slugs, read from the clones on
-   * Erik's machine.
-   */
-  featuredRepos: ["StiLU", "RoamBetter", "mat_ai", "Indiska-grytan"],
-
-  /** Repos that must never appear anywhere on the site. TODO: fill in. */
-  hiddenRepos: [] as string[],
-
-  /** Tech stack, used by the marquee / about section. */
+  /** Shown as a plain list in About. */
   stack: [
     "TypeScript",
     "React",
     "Next.js",
-    "Tailwind CSS",
     "Flutter",
     "Dart",
+    "Tailwind CSS",
     "Firebase",
     "Firestore",
     "Cloud Functions",
     "Node.js",
     "Vite",
-    "GSAP",
+    "Groq / Gemini",
     "Git",
   ],
 } as const;
 
-/**
- * The line the whiteout hands you — the first words after the hero burns
- * out. It is the one sentence the site is allowed, so it carries the claim.
- */
-export const statement = {
-  label: "What I do",
-  lead: "I build the whole thing — from the data model to",
-  emphasis: "the last hover state.",
+/* ── The hero ─────────────────────────────────────────────────── */
+
+export const hero = {
+  /** Caption for the ASCII plate. */
+  plate: "Vallée Blanche — 3842 m",
+  /** One line under the name. Says what he does, in words anyone follows. */
+  role: "I build web and mobile systems end to end",
+  cue: "Scroll into the sun",
 } as const;
 
 /**
- * Projects shown in the Phase 0 slices. Copy is from your brief — every claim
- * gets verified against each repo's README before the full build.
+ * The line the whiteout hands you — the first words after the hero burns out.
+ * It is the one sentence the site is allowed, so it carries the whole claim:
+ * one person, the entire system, AI included.
  */
+export const statement = {
+  label: "What I do",
+  lead: "I build the whole thing — the app,",
+  emphasis: "the admin behind it, and the AI inside it.",
+} as const;
+
+/* ── Work ─────────────────────────────────────────────────────── */
+
+export type Beat = { title: string; body: string };
+
 export type Project = {
   index: string;
   name: string;
   year: string;
   role: string;
+  /** One sentence a non-technical reader finishes and understands. */
   summary: string;
-  detail: string;
+  /** The two or three things worth knowing. Each is a small case study. */
+  beats: Beat[];
   stack: string[];
   /**
-   * Where the row points. Empty means there is nothing public to point at —
-   * the row renders as a plain entry rather than a link, so nobody is offered
-   * a click that lands on a 404. Checked against the API on 2026-08-16: of
-   * these four, every repo is private. Make one public and paste its URL here.
+   * Where the row points. Empty means there is nothing public to point at, and
+   * the entry renders without a link rather than offering a click that 404s.
+   * Both of these repos are private (checked against the API, 2026-08-16).
    */
   href: string;
-  /** Which patch of the ASCII plate backs this project's detail panel. */
+  /** Which patch of the ASCII plate backs this entry. */
   crop: { col: number; row: number; cols: number; rows: number };
 };
 
-/**
- * The featured case study, told in three beats — the pinned, scrubbed section
- * steps through these as you scroll.
- * TODO: verify every claim against the repo README before launch.
- */
-export const featuredCase = {
-  name: "RoamBetter",
-  year: "2025",
-  role: "Design & build",
-  /** Private repo — see the note on Project["href"]. */
-  href: "",
-  stack: ["Next.js", "TypeScript", "Tailwind", "Firebase", "Firestore"],
-  beats: [
-    {
-      label: "The problem",
-      title: "Two sides that must not meet directly.",
-      body: "Tradespeople looking for work abroad, and employers looking for them. The operator sits in the middle — and a marketplace only works if that middle can't be cut out.",
-    },
-    {
-      label: "What I built",
-      title: "A placement platform with role-based access throughout.",
-      body: "Next.js App Router and TypeScript on the front, Firebase behind it. Workers, employers and admins each see a different application built from the same codebase.",
-    },
-    {
-      label: "The interesting part",
-      title: "The database enforces the business model.",
-      body: "Contact details live in admin-only Firestore collections. It isn't a UI rule that hides the phone number — the security rules mean the data never reaches the other side's client at all.",
-    },
-  ],
+export const work = {
+  label: "Selected work",
+  /** Sets up both projects in client terms before either is named. */
+  lead: "Two products, both built alone — the app people use, the database behind it, the admin panel that runs it, and the hosting it lives on.",
 } as const;
 
-/** About copy — first person, plain. */
-export const about = [
-  "I'm a computer engineering student at Luleå tekniska universitet, and I build full-stack web and mobile products — usually the whole thing, from the data model to the last hover state.",
-  "Most of what I ship is React, Next.js and TypeScript on the web, Flutter on mobile, and Firebase behind both. I like the parts other people skip: security rules that actually hold, admin tooling a client can run without me, and interfaces that stay fast on a mid-range phone.",
-  "I'm available for freelance web work — sites, web apps, and the occasional rescue of something half-finished.",
-] as const;
-
+/**
+ * Written from the repos themselves — README, architecture notes and commit
+ * history — not from memory. Years are first-commit years.
+ */
 export const projects: Project[] = [
   {
     index: "01",
-    name: "ALPINA",
-    year: "2025",
+    name: "StiLU",
+    year: "2026",
     role: "Lead developer",
     summary:
-      "The website for a student ski association at LTU — bookings, an admin dashboard, and groundwork for multiple languages.",
-    detail:
-      "Built as lead dev in a small team: booking flow, admin tooling, and a Firebase backend the committee can run themselves.",
-    stack: ["React", "TypeScript", "Vite", "Firebase", "Tailwind"],
+      "The website and membership system for a student sports association in Luleå — four clubs under one roof, with events, trips, bookings and a member register.",
+    beats: [
+      {
+        title: "The committee runs it, not me.",
+        body: "Every piece of text on the site can be rewritten from inside the site itself, by anyone with an admin login. Nobody needs a developer to correct a date or add a trip — which matters when the committee changes every year.",
+      },
+      {
+        title: "Four clubs, one system.",
+        body: "Alpina, Friluft, Längd & Löp and Orientering each get their own section, members and events, all built from a single codebase. One fix lands in all four at once instead of being repeated four times.",
+      },
+      {
+        title: "Photo uploads without handing out keys.",
+        body: "The browser never holds storage credentials. It asks a small server function for a one-time upload link, and that function is the only thing that knows the secret.",
+      },
+    ],
+    stack: [
+      "React",
+      "TypeScript",
+      "Vite",
+      "Tailwind",
+      "Firebase",
+      "Firestore",
+      "Cloud Functions",
+      "Cloudflare R2",
+    ],
     href: "",
     crop: { col: 20, row: 66, cols: 150, rows: 40 },
   },
   {
     index: "02",
-    name: "RoamBetter",
-    year: "2025",
-    role: "Design & build",
-    summary:
-      "A worker-placement platform connecting tradespeople with employers overseas, with role-based access throughout.",
-    detail:
-      "Firestore keeps contact details in admin-only collections, so neither side of the marketplace can route around the operator.",
-    stack: ["Next.js", "TypeScript", "Tailwind", "Firebase"],
-    href: "",
-    crop: { col: 290, row: 62, cols: 150, rows: 40 },
-  },
-  {
-    index: "03",
-    name: "Food Tracker",
-    year: "2025",
+    name: "Vana",
+    year: "2026",
     role: "Solo build",
     summary:
-      "Strava, but for food. Photograph a meal and AI logs it — built as a cross-platform mobile app.",
-    detail:
-      "A Cloud Function proxies Groq so the API key never ships in the client, with per-user rate limiting and a bring-your-own-key mode.",
-    stack: ["Flutter", "Dart", "Firebase", "Groq AI"],
-    href: "",
-    crop: { col: 560, row: 58, cols: 150, rows: 40 },
-  },
-  {
-    index: "04",
-    name: "Indiska Grytan",
-    year: "2024",
-    role: "Solo build",
-    summary:
-      "A restaurant site built early on with no framework — hand-written HTML, CSS and JavaScript.",
-    detail:
-      "Kept in the portfolio deliberately: it shows the range, and that I could build and ship before the tooling did any of it for me.",
-    stack: ["HTML", "CSS", "JavaScript"],
+      "Photograph a meal and it is logged. Vana reads the picture, works out roughly what is in it, and scores the day out of 100 — with consent, data export and account deletion built in from the start.",
+    beats: [
+      {
+        title: "The AI key never leaves the server.",
+        body: "The app talks to a function I control. That function checks who you are, adds the secret key and forwards the request. Nothing sensitive is ever shipped inside the app, where anyone could read it out.",
+      },
+      {
+        title: "AI that cannot run up a bill.",
+        body: "Every account has a daily limit, counted in a place the app itself is not allowed to read or change, and only approved models are let through. A stolen login cannot turn into an unbounded invoice.",
+      },
+      {
+        title: "The score does not depend on the AI.",
+        body: "Once a meal is logged, the daily score is plain arithmetic — energy, protein, quality, balance. Same input, same answer, every time, and testable without ever calling a model.",
+      },
+    ],
+    stack: ["Flutter", "Dart", "Firebase", "Firestore", "Cloud Functions", "Groq", "Gemini"],
     href: "",
     crop: { col: 800, row: 22, cols: 150, rows: 40 },
   },
 ];
+
+/* ── About ────────────────────────────────────────────────────── */
+
+export const about = {
+  label: "About",
+  headline: { lead: "I like the parts", emphasis: "other people skip." },
+  stackLabel: "Stack",
+  facts: {
+    degree: "Degree",
+    based: "Based",
+    status: "Status",
+    statusValue: "Available for freelance work",
+  },
+  paragraphs: [
+    "I'm a computer engineering student at Luleå tekniska universitet, and I build complete web and mobile products on my own — the part people click, the database behind it, the admin panel that runs it, and the hosting it sits on.",
+    "AI is part of how I work and part of what I build. It's why one person can now deliver what used to take a team. And when a product needs AI inside it, I build that side properly: keys kept on the server, limits that actually hold, and results you can check without trusting the model.",
+    // Deliberately does not restate the headline above it — it lists what the
+    // headline means instead.
+    "Access rules that hold up under someone actually trying. Admin tools a client can run without calling me. Screens that stay quick on a mid-range phone, not just on the laptop they were built on.",
+    "I'm available for freelance work — a new site, a web app, or finishing something that stalled halfway.",
+  ],
+} as const;
+
+/* ── Contact ──────────────────────────────────────────────────── */
+
+export const contact = {
+  label: "Contact",
+  headline: "Got something you want built?",
+  body: "A site, a web app, or an AI feature inside something you already run. Tell me what it needs to do and I'll tell you what it takes. Reply usually the same day.",
+  available: "Available for freelance work",
+  backToTop: "Back to the top ↑",
+} as const;
+
+/* ── Navigation ───────────────────────────────────────────────── */
+
+export const nav = [
+  { label: "Work", href: "#work" },
+  { label: "About", href: "#about" },
+  { label: "Contact", href: "#contact" },
+] as const;

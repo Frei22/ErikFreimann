@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Mask, useReveal } from "@/components/site/Reveal";
-import { site } from "@/config/site";
+import { contact, site } from "@/config/site";
 import { SectionHead } from "./SectionHead";
 
-/** The bottom of the run. */
+/** The end of the run. The email is the largest thing here, by design. */
 export function Contact() {
   const scope = useRef<HTMLElement>(null);
   const [time, setTime] = useState("");
@@ -31,13 +31,13 @@ export function Contact() {
   return (
     <footer ref={scope} id="contact" className="px-5 pb-16 md:px-10 md:pb-20">
       <SectionHead
-        index="05"
-        label="Chamonix"
+        index="03"
+        label={contact.label}
         note={time ? <span className="tnum">{time} local</span> : null}
       />
 
       <h2 className="mt-12 font-fraunces text-[clamp(2rem,6vw,4.4rem)] leading-[1.02] font-normal tracking-[-0.035em] md:mt-20">
-        <Mask>Got something you want built?</Mask>
+        <Mask>{contact.headline}</Mask>
       </h2>
 
       <p data-fade className="js-anim mt-8">
@@ -53,15 +53,19 @@ export function Contact() {
         data-fade="0.08"
         className="js-anim mt-6 max-w-prose font-inter text-[16px] leading-relaxed text-muted"
       >
-        Freelance web work — sites, web apps, and the occasional rescue of something
-        half-finished. Reply time is usually the same day.
+        {contact.body}
       </p>
 
       <div className="mt-20 flex flex-wrap items-end justify-between gap-8 border-t border-line pt-6 font-mono text-[10px] tracking-[0.18em] uppercase md:mt-28">
         <ul className="flex flex-wrap gap-6">
           {socials.map((social) => (
             <li key={social.label}>
-              <a href={social.href} target="_blank" rel="noreferrer" className="text-muted hover:text-ink">
+              <a
+                href={social.href}
+                target="_blank"
+                rel="noreferrer"
+                className="text-muted hover:text-ink"
+              >
                 <span className="wipe">{social.label}</span>
               </a>
             </li>
@@ -73,7 +77,7 @@ export function Contact() {
             © {new Date().getFullYear()} {site.name}
           </span>
           <a href="#top" className="hover:text-ink">
-            <span className="wipe">Back to the top ↑</span>
+            <span className="wipe">{contact.backToTop}</span>
           </a>
         </div>
       </div>

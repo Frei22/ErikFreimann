@@ -1,15 +1,9 @@
 "use client";
 
 import { useRef } from "react";
-import { site } from "@/config/site";
+import { nav, site } from "@/config/site";
 import { onHeroProgress } from "@/lib/heroProgress";
 import { prefersReducedMotion, useIsomorphicLayoutEffect } from "@/lib/motion";
-
-const LINKS = [
-  ["Work", "#work"],
-  ["About", "#about"],
-  ["Contact", "#contact"],
-] as const;
 
 /**
  * The bar steps aside for the flight and comes back with the light: it is
@@ -20,7 +14,11 @@ export function Nav() {
   const bar = useRef<HTMLElement>(null);
 
   useIsomorphicLayoutEffect(() => {
-    if (prefersReducedMotion()) return;
+    // With no flight the bar never hides, so it needs its ground from the off.
+    if (prefersReducedMotion()) {
+      bar.current?.classList.add("is-solid");
+      return;
+    }
 
     return onHeroProgress((p) => {
       const el = bar.current;
@@ -31,20 +29,22 @@ export function Nav() {
       el.style.opacity = String(shown);
       el.style.transform = `translate3d(0, ${(1 - shown) * -18}px, 0)`;
       el.style.pointerEvents = shown > 0.5 ? "auto" : "none";
+      // Once the flight is over the page below is type, not picture.
+      el.classList.toggle("is-solid", p > 0.98);
     });
   }, []);
 
   return (
     <header
       ref={bar}
-      className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-5 font-mono text-[11px] tracking-[0.18em] uppercase mix-blend-normal will-change-[transform,opacity] md:px-10"
+      className="site-nav fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-5 font-mono text-[11px] tracking-[0.18em] uppercase will-change-[transform,opacity] md:px-10"
     >
       <a href="#top" className="wipe">
         {site.name}
       </a>
 
       <nav className="flex items-center gap-5 sm:gap-8">
-        {LINKS.map(([label, href]) => (
+        {nav.map(({ label, href }) => (
           <a key={label} href={href} className="wipe text-muted transition-colors hover:text-ink">
             {label}
           </a>

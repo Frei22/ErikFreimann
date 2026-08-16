@@ -132,6 +132,24 @@ a:focus-visible .wipe::after {
   border-radius: 1px;
 }
 
+/* ── Nav ────────────────────────────────────────────────────────────────
+   Over the plate the bar floats on the picture. Past the hero it has to sit
+   on something: the work section's sticky column scrolls up underneath it,
+   and two pieces of type in the same place with nothing between them is
+   just a collision.                                                        */
+.site-nav {
+  border-bottom: 1px solid transparent;
+  transition:
+    background-color 0.35s ease,
+    backdrop-filter 0.35s ease,
+    border-color 0.35s ease;
+}
+.site-nav.is-solid {
+  background-color: color-mix(in srgb, var(--color-paper) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom-color: var(--color-line);
+}
+
 /* The scroll cue: a hairline that keeps falling. */
 .hero-cue {
   transform-origin: top;

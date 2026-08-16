@@ -1,14 +1,16 @@
 name: Deploy to GitHub Pages
 
 # One-time setup: repo Settings → Pages → Source = "GitHub Actions".
-# Then every push to main publishes, and the daily run refreshes the repo feed
-# (a static export bakes the GitHub data in at build time).
+# Then every push to main publishes.
+#
+# There was a nightly run here to refresh a live GitHub repo feed. The feed is
+# gone, so the site is now entirely static content from the repo — nothing
+# changes between pushes, and a scheduled rebuild would publish an identical
+# artifact every morning.
 
 on:
   push:
     branches: [main]
-  schedule:
-    - cron: "0 5 * * *"
   workflow_dispatch:
 
 permissions:
@@ -36,8 +38,6 @@ jobs:
       - name: Build static export
         env:
           NEXT_OUTPUT: export
-          # Lifts the anonymous GitHub API rate limit for the repo feed.
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # A project site lives at https://<user>.github.io/<repo>, so the base
         # path is the repo name. GITHUB_REPOSITORY is set on every event type,
         # including schedule — github.event.repository is not.

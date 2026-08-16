@@ -104,9 +104,7 @@ const state = await page.evaluate(() => {
     hiddenAnims: [...document.querySelectorAll(".js-anim")].filter(
       (el) => getComputedStyle(el).visibility === "hidden",
     ).length,
-    sections: ["top", "work", "case", "repos", "about", "contact"].filter(
-      (id) => !document.getElementById(id),
-    ),
+    sections: ["top", "work", "about", "contact"].filter((id) => !document.getElementById(id)),
     fonts: document.fonts.status,
   };
 });

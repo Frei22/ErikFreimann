@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { site, statement } from "@/config/site";
+import { hero, site, statement } from "@/config/site";
 import { loadAsciiGrid } from "@/lib/ascii/grid";
 import { AsciiRenderer } from "@/lib/ascii/renderer";
 import { setHeroProgress } from "@/lib/heroProgress";
@@ -206,7 +206,7 @@ export function AsciiHero() {
             data-fade
             className="js-anim font-mono text-[11px] tracking-[0.2em] text-muted uppercase"
           >
-            {plateFailed ? "Vallée Blanche" : "Vallée Blanche — 3842 m"}
+            {hero.plate}
           </p>
 
           <h1 className="mt-4 font-fraunces text-[clamp(2.6rem,9vw,7.5rem)] leading-[0.94] font-normal tracking-[-0.035em]">
@@ -218,9 +218,9 @@ export function AsciiHero() {
           <div className="mt-6 flex flex-wrap items-end justify-between gap-6">
             <p
               data-fade="0.1"
-              className="js-anim max-w-sm font-inter text-[15px] leading-relaxed text-muted"
+              className="js-anim max-w-md font-inter text-[15px] leading-relaxed text-muted"
             >
-              {site.role} — {site.location}.
+              {hero.role} — {site.location}.
             </p>
 
             <p
@@ -228,7 +228,7 @@ export function AsciiHero() {
               className="js-anim flex items-center gap-3 font-mono text-[11px] tracking-[0.2em] text-muted uppercase"
             >
               <span className="hero-cue block h-8 w-px bg-green" aria-hidden />
-              Scroll into the sun
+              {hero.cue}
             </p>
           </div>
         </div>

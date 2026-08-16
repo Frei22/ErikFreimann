@@ -2,33 +2,28 @@
 
 import { AsciiHero } from "@/components/ascii/AsciiHero";
 import { About } from "@/components/sections/About";
-import { Case } from "@/components/sections/Case";
 import { Contact } from "@/components/sections/Contact";
-import { Repos } from "@/components/sections/Repos";
 import { Work } from "@/components/sections/Work";
-import { FlightRing } from "@/components/site/FlightRing";
+import { FlightStripe } from "@/components/site/FlightStripe";
 import { Nav } from "@/components/site/Nav";
-import type { Repo } from "@/lib/github";
 import { useLenis } from "@/lib/useLenis";
 
 /**
  * The hero owns the motion. Everything below it is type on paper that arrives
- * and then holds still — including the chrome: the flight ring is the only
- * persistent instrument, and it leaves with the flight.
+ * and then holds still — including the chrome: the flight stripe is the only
+ * instrument, and it leaves with the flight.
  */
-export function DescentPage({ repos }: { repos: Repo[] }) {
+export function DescentPage() {
   useLenis();
 
   return (
     <>
       <Nav />
-      <FlightRing />
+      <FlightStripe />
 
       <main>
         <AsciiHero />
         <Work />
-        <Case />
-        <Repos repos={repos} />
         <About />
         <Contact />
       </main>

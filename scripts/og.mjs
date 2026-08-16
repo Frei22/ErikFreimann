@@ -68,7 +68,7 @@ const html = `<!doctype html>
   <div class="layer">
     <div class="rule"></div>
     <div class="row">
-      <div class="label">Full-stack developer — React · Next.js · Flutter · Firebase</div>
+      <div class="label">The app · the admin behind it · the AI inside it</div>
       <div class="label">Malmö / Luleå</div>
     </div>
   </div>
