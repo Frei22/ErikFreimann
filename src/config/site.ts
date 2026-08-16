@@ -26,14 +26,14 @@ export const site = {
 
   location: "Malmö / Luleå, Sweden",
 
-  /** TODO: confirm — inferred from your account email. */
+  /** Confirmed against git config on Erik's machine. */
   email: "erik1.freimann2@gmail.com",
 
-  /** TODO: confirm — inferred from the repo owner (frei22/erikfreimann). */
-  githubUsername: "frei22",
+  /** Confirmed against git config on Erik's machine. */
+  githubUsername: "Frei22",
 
   /** Production URL, used for Open Graph / canonical tags. */
-  url: "https://erikfreimann.vercel.app",
+  url: "https://frei22.github.io/ErikFreimann",
 
   /** TODO: add your real profile URLs, or delete the ones you don't want. */
   socials: [
@@ -42,11 +42,12 @@ export const site = {
   ],
 
   /**
-   * Repos featured as full case studies, in display order.
-   * TODO: confirm the exact repo slugs — these are best guesses and are
-   * matched case-insensitively against your public repos.
+   * Repos featured as full case studies, in display order. Excluded from the
+   * "All projects" grid so they are not listed twice. Matched
+   * case-insensitively — these are the real slugs, read from the clones on
+   * Erik's machine.
    */
-  featuredRepos: ["ALPINA", "RoamBetter", "food-tracker", "indiska-grytan"],
+  featuredRepos: ["StiLU", "RoamBetter", "mat_ai", "Indiska-grytan"],
 
   /** Repos that must never appear anywhere on the site. TODO: fill in. */
   hiddenRepos: [] as string[],
