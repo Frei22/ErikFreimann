@@ -116,6 +116,9 @@ export function AsciiHero() {
 
         if (reduced) {
           // No flight — the plate is simply a picture.
+          while (renderer.buildStep(grid.rows.length)) {
+            /* one pass */
+          }
           renderer.draw(0);
           paint(0);
           return;
@@ -134,16 +137,19 @@ export function AsciiHero() {
         shown = target;
 
         // One ticker for the plate, shared with Lenis and ScrollTrigger, so
-        // the frame does a single layout pass. Idle frames cost nothing —
-        // once the follow has caught up there is nothing to redraw.
+        // the frame does a single layout pass. It also drives the bitmap
+        // build, which is why the plate paints itself in sky-first on arrival.
+        // Once that is done and the follow has caught up, idle frames cost
+        // nothing.
         ticker = () => {
+          const building = renderer?.buildStep() ?? false;
           const delta = target - shown;
-          if (Math.abs(delta) <= 0.00015) {
-            if (shown === target) return;
-            shown = target;
-          } else {
-            shown += delta * FOLLOW;
-          }
+          const moving = Math.abs(delta) > 0.00015;
+
+          if (moving) shown += delta * FOLLOW;
+          else if (shown !== target) shown = target;
+          else if (!building) return;
+
           renderer?.draw(shown);
           paint(shown);
         };
@@ -167,6 +173,7 @@ export function AsciiHero() {
       window.removeEventListener("resize", onResize);
       if (ticker) gsap.ticker.remove(ticker);
       trigger?.kill();
+      renderer?.destroy();
       intro.revert();
     };
   }, []);

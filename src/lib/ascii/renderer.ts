@@ -83,24 +83,48 @@ const PHONE_VISIBLE_WIDTH = 0.55;
  */
 
 /**
- * ── Why there is no bitmap here ──────────────────────────────────────────
+ * ── Why the wide shot is a bitmap ────────────────────────────────────────
  *
- * Some of the roughness at the wide shot is inherent: a cell is under 4
- * device px there, so re-rasterising type every frame re-snaps every stem to
- * a slightly different pixel grid and the field shimmers rather than glides.
- * Scaling a pre-rendered bitmap would interpolate instead, and move smoother.
+ * Not for speed. A full live-text redraw holds 60 fps at every zoom on a
+ * 1920 × 1080 @dpr 2 viewport — that was measured.
  *
- * It was built and measured, and it is not used, because the supersampled
- * bitmap comes back a touch heavier in the sky than live text does, and
- * matching ascii-hero.html exactly beats a smoothness gain that could not be
- * demonstrated objectively. Performance is not the reason — a full live-text
- * redraw holds 60 fps at every zoom on a 1920 × 1080 @dpr 2 viewport.
+ * Canvas quantises a glyph's baseline to whole device pixels. Measured: sweep
+ * a fillText y through one pixel and the ink lands in exactly two places, not
+ * eleven. `textRendering = "geometricPrecision"` does not change it, and
+ * neither does drawing at a fixed font size under a scale transform — both
+ * still give two.
  *
- * If the flight ever needs to be smoother than the plate needs to be exact,
- * this is the lever: raster the grid once at the zoom-1 device cell size,
- * blit it 1:1 at rest, and crossfade to live text over roughly 4.5 → 8
- * device px per cell.
+ * Rows sit a fractional number of pixels apart, so as the zoom sweeps, each
+ * row crosses its own snap threshold at its own moment and hops a whole pixel
+ * on its own. That is the vibration: not the scroll stuttering, but every row
+ * of the picture twitching independently while the page glides underneath.
+ *
+ * It cannot be fixed within live text. Making the rows hop together needs an
+ * integer cell height, which at the wide shot means quantising the zoom in
+ * 16–33% steps. A pre-rendered bitmap, scaled, interpolates instead of
+ * re-snapping — measured at eleven distinct positions across the same sweep.
+ *
+ * So the trade is: the plate goes slightly soft either side of RASTER_TARGET
+ * in exchange for motion that is actually continuous. Live text takes back
+ * over once the cells are large enough that a one-pixel hop is a few per cent
+ * of a cell rather than a third of one.
  */
+
+/** Device px per cell where crisp text starts fading in, and takes over. */
+const TEXT_IN = 7;
+const TEXT_FULL = 13;
+
+/**
+ * Bitmap resolution, as a multiple of the cell size at zoom 1. At exactly this
+ * zoom the blit is 1 : 1 and identical to live text; below it the bitmap is
+ * supersampled down, above it upscaled. 1.4 puts the exact point just inside
+ * the range the bitmap is responsible for, so neither end drifts far.
+ */
+const RASTER_TARGET = 1.4;
+/** iOS refuses canvases much over 16.7 M px; stay well under on every device. */
+const RASTER_MAX_PIXELS = 13.5e6;
+/** Rows per frame while it builds, so arrival never blocks a frame. */
+const BUILD_ROWS_PER_FRAME = 32;
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const smoothstep = (t: number) => t * t * (3 - 2 * t);
@@ -116,6 +140,12 @@ export class AsciiRenderer {
   private dpr = 1;
   /** Glyph advance per 1 px of font-size, measured from the actual font. */
   private advance = 0.6;
+
+  private raster: HTMLCanvasElement | null = null;
+  private rasterCtx: CanvasRenderingContext2D | null = null;
+  /** Cell width the bitmap was drawn at, in its own pixels. */
+  private rasterCell = 0;
+  private builtRows = 0;
 
   constructor(canvas: HTMLCanvasElement, grid: AsciiGrid, theme: RendererTheme) {
     // Keeping the alpha channel matters: on an opaque canvas Chromium picks
@@ -144,6 +174,61 @@ export class AsciiRenderer {
 
     this.ctx.font = `100px ${PLATE_FONT}`;
     this.advance = this.ctx.measureText("M").width / 100 || 0.6;
+
+    this.prepareRaster();
+  }
+
+  /** True once the wide-shot bitmap is complete. */
+  get built() {
+    return this.builtRows >= this.grid.rows.length;
+  }
+
+  private prepareRaster() {
+    const { cols, rows } = this.grid;
+
+    let cell = this.framing().unit * this.dpr * RASTER_TARGET;
+    const pixels = cols * cell * (rows.length * cell * GRID_ASPECT);
+    if (pixels > RASTER_MAX_PIXELS) cell *= Math.sqrt(RASTER_MAX_PIXELS / pixels);
+
+    // Rebuilding is expensive and a resize rarely moves the target far.
+    if (this.raster && Math.abs(cell - this.rasterCell) / this.rasterCell < 0.25) return;
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Same rule as the live path: set the font, then take the pitch from the
+    // font's own advance, so the bitmap's internal geometry is exact too.
+    ctx.font = `${cell / this.advance}px ${PLATE_FONT}`;
+    const pitch = ctx.measureText("M").width || cell;
+
+    canvas.width = Math.ceil(cols * pitch);
+    canvas.height = Math.ceil(rows.length * pitch * GRID_ASPECT);
+
+    // Setting width/height resets the context, so the font goes back on after.
+    ctx.font = `${cell / this.advance}px ${PLATE_FONT}`;
+    ctx.fillStyle = this.theme.ink;
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
+
+    this.raster = canvas;
+    this.rasterCtx = ctx;
+    this.rasterCell = pitch;
+    this.builtRows = 0;
+  }
+
+  /** Draws the next slice of the bitmap. Call from the ticker until false. */
+  buildStep(rowBudget = BUILD_ROWS_PER_FRAME) {
+    const ctx = this.rasterCtx;
+    if (!ctx || this.built) return false;
+
+    const cellH = this.rasterCell * GRID_ASPECT;
+    const end = Math.min(this.grid.rows.length, this.builtRows + rowBudget);
+    for (let r = this.builtRows; r < end; r++) {
+      ctx.fillText(this.grid.rows[r], 0, r * cellH + cellH / 2);
+    }
+    this.builtRows = end;
+    return true;
   }
 
   /**
@@ -212,22 +297,47 @@ export class AsciiRenderer {
     ctx.fillStyle = this.theme.paper;
     ctx.fillRect(0, 0, vw, vh);
 
-    // Cull to the visible window, so cost stays flat as we zoom in.
-    const c0 = Math.max(0, Math.floor(-ox / cellW));
-    const c1 = Math.min(cols, Math.ceil((vw - ox) / cellW));
-    const r0 = Math.max(0, Math.floor(-oy / cellH));
-    const r1 = Math.min(nRows, Math.ceil((vh - oy) / cellH));
+    const textAlpha = clamp01((cellW * this.dpr - TEXT_IN) / (TEXT_FULL - TEXT_IN));
 
-    if (c1 > c0 && r1 > r0) {
-      // The font is already set — see the cell-width note above.
-      ctx.fillStyle = this.theme.ink;
-      ctx.textBaseline = "middle";
-      ctx.textAlign = "left";
+    // The bitmap carries the wide shot, where a snapped baseline is a third of
+    // a cell and every row twitches on its own.
+    if (textAlpha < 1 && this.raster && this.builtRows > 0) {
+      const shown = this.builtRows / nRows;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(
+        this.raster,
+        0,
+        0,
+        this.raster.width,
+        this.raster.height * shown,
+        ox,
+        oy,
+        cols * cellW,
+        this.builtRows * cellH,
+      );
+    }
 
-      const x = ox + c0 * cellW;
-      for (let r = r0; r < r1; r++) {
-        // One run per row — monospace guarantees it lands on the grid.
-        ctx.fillText(rows[r].slice(c0, c1), x, oy + r * cellH + cellH / 2);
+    if (textAlpha > 0) {
+      // Cull to the visible window, so cost stays flat as we zoom in.
+      const c0 = Math.max(0, Math.floor(-ox / cellW));
+      const c1 = Math.min(cols, Math.ceil((vw - ox) / cellW));
+      const r0 = Math.max(0, Math.floor(-oy / cellH));
+      const r1 = Math.min(nRows, Math.ceil((vh - oy) / cellH));
+
+      if (c1 > c0 && r1 > r0) {
+        // The font is already set — see the cell-width note above.
+        ctx.globalAlpha = textAlpha;
+        ctx.fillStyle = this.theme.ink;
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "left";
+
+        const x = ox + c0 * cellW;
+        for (let r = r0; r < r1; r++) {
+          // One run per row — monospace guarantees it lands on the grid.
+          ctx.fillText(rows[r].slice(c0, c1), x, oy + r * cellH + cellH / 2);
+        }
+        ctx.globalAlpha = 1;
       }
     }
 
@@ -241,6 +351,17 @@ export class AsciiRenderer {
       ctx.fillRect(0, 0, vw, vh);
       ctx.globalAlpha = 1;
     }
+  }
+
+  destroy() {
+    // Free the backing store rather than waiting for collection — it is the
+    // largest single allocation on the page.
+    if (this.raster) {
+      this.raster.width = 0;
+      this.raster.height = 0;
+    }
+    this.raster = null;
+    this.rasterCtx = null;
   }
 }
 
