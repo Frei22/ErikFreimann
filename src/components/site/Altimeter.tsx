@@ -93,21 +93,25 @@ export function Altimeter() {
   }, []);
 
   return (
+    // Two shapes. On a wide screen it stacks in the bottom-left margin, where
+    // there is nothing to collide with. On a phone there is no margin — content
+    // runs edge to edge — so it becomes a status bar with its own ground rather
+    // than an overlay sitting on top of the words.
     <div
       ref={root}
       aria-hidden
-      className="pointer-events-none fixed bottom-5 left-5 z-40 opacity-0 transition-opacity duration-300 select-none md:bottom-8 md:left-10"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-line bg-paper px-5 py-2.5 opacity-0 transition-opacity duration-300 select-none md:inset-x-auto md:bottom-8 md:left-10 md:block md:border-0 md:bg-transparent md:p-0"
     >
-      <p className="tnum font-mono text-[13px] leading-none tracking-[0.06em]">
+      <p className="tnum shrink-0 font-mono text-[11px] leading-none tracking-[0.06em] md:text-[13px]">
         <span ref={metres}>{altitude.top}</span>
         <span className="text-muted"> m</span>
       </p>
 
-      <span className="mt-2.5 block h-px w-14 overflow-hidden bg-line">
+      <span className="block h-px flex-1 overflow-hidden bg-line md:mt-2.5 md:w-14 md:flex-none">
         <span ref={fill} className="block h-full w-full origin-left scale-x-0 bg-green" />
       </span>
 
-      <p className="mt-2.5 font-mono text-[9.5px] tracking-[0.2em] text-muted uppercase">
+      <p className="shrink-0 font-mono text-[9.5px] tracking-[0.2em] text-muted uppercase md:mt-2.5">
         <span ref={index}>{descent[0].index}</span>
         <span className="px-1.5 text-green">·</span>
         <span ref={label}>{descent[0].label}</span>
