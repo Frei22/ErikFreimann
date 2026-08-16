@@ -9,6 +9,7 @@
     "lint": "next lint",
     "shots": "node scripts/screenshot.mjs",
     "og": "node scripts/og.mjs",
+    "icons": "node scripts/icons.mjs",
     "build:export": "NEXT_OUTPUT=export next build",
     "verify:export": "node scripts/verify-export.mjs"
   },

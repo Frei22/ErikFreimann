@@ -54,7 +54,15 @@ export const metadata: Metadata = {
     description: site.intro,
     images: [asset("/og.png")],
   },
-  icons: { icon: asset("/favicon.svg") },
+  // SVG first for anything that takes one, PNG behind it for anything that
+  // does not — an SVG-only icon simply shows nothing in older Safari and Edge.
+  icons: {
+    icon: [
+      { url: asset("/favicon.svg"), type: "image/svg+xml" },
+      { url: asset("/favicon-32.png"), type: "image/png", sizes: "32x32" },
+    ],
+    apple: asset("/apple-touch-icon.png"),
+  },
 };
 
 export const viewport: Viewport = {
