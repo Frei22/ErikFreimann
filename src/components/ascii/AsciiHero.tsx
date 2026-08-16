@@ -32,12 +32,8 @@ const LINE_IN_END = 0.92;
 /** How much page the flight is worth. Long enough to feel like distance. */
 const FLIGHT_HEIGHT = "520svh";
 
-/** Follow lag on top of Lenis. Small — enough to smooth a trackpad's steps
- *  into a glide without the picture feeling like it is on elastic. */
-const FOLLOW = 0.14;
-
-const MONO_FONT =
-  'var(--f-mono), ui-monospace, "Cascadia Mono", Consolas, "SF Mono", "DejaVu Sans Mono", monospace';
+/** Follow lag on top of Lenis — the original page's `smoothing`. */
+const FOLLOW = 0.12;
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
@@ -109,18 +105,11 @@ export function AsciiHero() {
       .then((grid) => {
         if (disposed) return;
 
-        renderer = new AsciiRenderer(canvas, grid, {
-          ink: "#1a1e26",
-          paper: "#faf8f3",
-          font: MONO_FONT,
-        });
+        renderer = new AsciiRenderer(canvas, grid, { ink: "#1a1e26", paper: "#faf8f3" });
         renderer.resize();
 
         if (reduced) {
-          // No flight: rasterise in one go and show the plate as a picture.
-          while (renderer.buildStep(grid.rows.length)) {
-            /* one pass */
-          }
+          // No flight — the plate is simply a picture.
           renderer.draw(0);
           paint(0);
           return;
@@ -139,20 +128,18 @@ export function AsciiHero() {
         shown = target;
 
         // One ticker for the plate, shared with Lenis and ScrollTrigger, so
-        // the frame does a single layout pass. It also drives the rasteriser,
-        // which is why the picture paints itself in sky-first on arrival.
+        // the frame does a single layout pass. Idle frames cost nothing —
+        // once the follow has caught up there is nothing to redraw.
         ticker = () => {
-          const building = renderer?.buildStep() ?? false;
           const delta = target - shown;
-          const moving = Math.abs(delta) > 0.00015;
-
-          if (moving) shown += delta * FOLLOW;
-          else shown = target;
-
-          if (moving || building) {
-            renderer?.draw(shown);
-            paint(shown);
+          if (Math.abs(delta) <= 0.00015) {
+            if (shown === target) return;
+            shown = target;
+          } else {
+            shown += delta * FOLLOW;
           }
+          renderer?.draw(shown);
+          paint(shown);
         };
         gsap.ticker.add(ticker);
 
@@ -174,7 +161,6 @@ export function AsciiHero() {
       window.removeEventListener("resize", onResize);
       if (ticker) gsap.ticker.remove(ticker);
       trigger?.kill();
-      renderer?.destroy();
       intro.revert();
     };
   }, []);
@@ -194,16 +180,14 @@ export function AsciiHero() {
           className="hero-canvas absolute inset-0 block h-full w-full"
         />
 
-        {/* Paper bled back over the top and bottom edges, so the nav and the
-            title sit on ground rather than on stipple. It leaves with the
-            title — once the flight starts there is nothing to protect. */}
-        <div
-          ref={scrim}
-          aria-hidden
-          className="hero-scrim pointer-events-none absolute inset-0"
-        >
-          <span className="absolute inset-x-0 top-0 block h-28 bg-gradient-to-b from-paper via-paper/80 to-transparent" />
-          <span className="absolute inset-x-0 bottom-0 block h-[52%] bg-gradient-to-t from-paper via-paper/88 to-transparent" />
+        {/* Paper hazed back over the top and bottom edges so the nav and the
+            title have something to sit on. Kept deliberately weak and short —
+            the plate is the point, and this only has to carry 11px of mono.
+            It leaves with the title: once the flight starts, nothing to
+            protect and nothing over the picture. */}
+        <div ref={scrim} aria-hidden className="hero-scrim pointer-events-none absolute inset-0">
+          <span className="absolute inset-x-0 top-0 block h-24 bg-gradient-to-b from-paper/90 to-transparent" />
+          <span className="absolute inset-x-0 bottom-0 block h-[44%] bg-gradient-to-t from-paper via-paper/75 to-transparent" />
         </div>
 
         {/* Title. Sits low-left over the sky, clears the frame the moment
