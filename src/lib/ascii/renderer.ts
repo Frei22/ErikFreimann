@@ -76,11 +76,11 @@ const WHITEOUT_END = 0.86;
 const PHONE_VISIBLE_WIDTH = 0.55;
 
 /**
- * How far the band's own edges dissolve into the paper, in CSS px. The plate's
- * outermost sky rows are dense dither, so a short fade still reads as a ruled
- * edge — this needs to be long enough to actually dissolve them.
+ * The band's top and bottom edges are left hard, on purpose. They were hazed
+ * into the paper for a while, but the plate's outermost sky rows are dense
+ * dither, so the gradient read as a grey smear across the picture rather than
+ * as light. A clean edge is better — it looks like a print on a page.
  */
-const EDGE_FADE = 64;
 
 /**
  * ── Why there is no bitmap here ──────────────────────────────────────────
@@ -168,29 +168,6 @@ export class AsciiRenderer {
   }
 
   /**
-   * Paper laid over one horizontal edge of the plate, fading inward, so the
-   * band ends in haze instead of a cut. `inward` is +1 for a top edge, -1 for
-   * a bottom one. A no-op when the edge is outside the viewport.
-   */
-  private fadeEdge(edgeY: number, inward: 1 | -1) {
-    const { ctx, vw, vh } = this;
-    if (edgeY < -EDGE_FADE || edgeY > vh + EDGE_FADE) return;
-
-    const far = edgeY + inward * EDGE_FADE;
-    const gradient = ctx.createLinearGradient(0, edgeY, 0, far);
-    gradient.addColorStop(0, this.theme.paper);
-    gradient.addColorStop(1, "transparent");
-
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, Math.min(edgeY, far), vw, EDGE_FADE);
-
-    // Beyond the edge there is no picture at all, only paper.
-    ctx.fillStyle = this.theme.paper;
-    if (inward === 1) ctx.fillRect(0, 0, vw, Math.max(0, edgeY));
-    else ctx.fillRect(0, Math.min(vh, edgeY), vw, vh);
-  }
-
-  /**
    * @param progress 0 = the whole plate, 1 = bare light.
    */
   draw(progress: number) {
@@ -204,7 +181,23 @@ export class AsciiRenderer {
     const zoom = Math.exp(Math.pow(t, ZOOM_EASE) * Math.log(MAX_ZOOM));
 
     const { unit, restX, restY } = this.framing();
-    const cellW = unit * zoom;
+
+    // Set the font first, then take the cell size *from the font* rather than
+    // the other way round.
+    //
+    // A row is one fillText, so the grid's column pitch is whatever advance
+    // the font actually uses — and that is quantised, drifting from the size
+    // we asked for by a few thousandths of a pixel per glyph. Over the ~790
+    // columns on screen at the wide shot that accumulates to about 4 px, and
+    // it resets to zero at certain sizes, so the right-hand side of the
+    // picture stretches away and snaps back as the zoom sweeps: a small
+    // horizontal shuffle, worst where the cells are smallest.
+    //
+    // Measuring the advance and treating *that* as the cell width makes the
+    // run exact by construction. The scale error it introduces is under a
+    // hundredth of a pixel per cell, which is invisible; the shuffle is not.
+    ctx.font = `${(unit * zoom) / this.advance}px ${PLATE_FONT}`;
+    const cellW = ctx.measureText("M").width || unit * zoom;
     const cellH = cellW * GRID_ASPECT;
 
     // The anchor drifts from where the plate rests to the sun as we go in, and
@@ -226,8 +219,8 @@ export class AsciiRenderer {
     const r1 = Math.min(nRows, Math.ceil((vh - oy) / cellH));
 
     if (c1 > c0 && r1 > r0) {
+      // The font is already set — see the cell-width note above.
       ctx.fillStyle = this.theme.ink;
-      ctx.font = `${cellW / this.advance}px ${PLATE_FONT}`;
       ctx.textBaseline = "middle";
       ctx.textAlign = "left";
 
@@ -237,13 +230,6 @@ export class AsciiRenderer {
         ctx.fillText(rows[r].slice(c0, c1), x, oy + r * cellH + cellH / 2);
       }
     }
-
-    // Where the plate's own edges fall inside the frame — a phone at rest —
-    // dissolve them into the paper rather than cutting the picture off with a
-    // ruled line. Off-screen edges cost nothing, so a covered viewport skips
-    // this entirely.
-    this.fadeEdge(oy, 1);
-    this.fadeEdge(oy + nRows * cellH, -1);
 
     // The whiteout. Laying paper over the top bleaches ink and glyph edges
     // together, so the picture burns out rather than dissolving in patches —

@@ -74,13 +74,17 @@ await new Promise((r) => setTimeout(r, 2500));
 const heroPainted = await page.evaluate(() => {
   const canvas = document.querySelector(".hero-canvas");
   const ctx = canvas?.getContext("2d");
-  // Sample across the plate: all-paper means the fetch or the raster failed
-  // and the hero is an empty box.
   if (!ctx || !canvas.width) return false;
-  const { data } = ctx.getImageData(0, Math.round(canvas.height * 0.35), canvas.width, 1);
+
+  // Sample several bands, not one. The plate's sky is sparse enough that a
+  // single scanline can legitimately come back almost empty — an earlier
+  // version of this check failed a perfectly good build for that reason.
   let inked = 0;
-  for (let i = 0; i < data.length; i += 4) if (data[i] < 230) inked++;
-  return inked > 40;
+  for (const frac of [0.2, 0.35, 0.5, 0.65]) {
+    const { data } = ctx.getImageData(0, Math.round(canvas.height * frac), canvas.width, 1);
+    for (let i = 0; i < data.length; i += 4) if (data[i] < 230) inked++;
+  }
+  return inked > 200;
 });
 
 // Walk the whole page so every reveal has had its trigger, then check that
