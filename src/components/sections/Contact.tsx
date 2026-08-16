@@ -2,13 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Mask, useReveal } from "@/components/site/Reveal";
-import { altitude, site } from "@/config/site";
+import { site } from "@/config/site";
 import { SectionHead } from "./SectionHead";
 
-/**
- * The bottom of the run. The altimeter has been counting down to this number
- * the whole way, so the section is allowed to just say it and stop.
- */
+/** The bottom of the run. */
 export function Contact() {
   const scope = useRef<HTMLElement>(null);
   const [time, setTime] = useState("");
@@ -36,11 +33,7 @@ export function Contact() {
       <SectionHead
         index="05"
         label="Chamonix"
-        note={
-          <span className="tnum">
-            {altitude.bottom} m {time ? `· ${time} local` : ""}
-          </span>
-        }
+        note={time ? <span className="tnum">{time} local</span> : null}
       />
 
       <h2 className="mt-12 font-fraunces text-[clamp(2rem,6vw,4.4rem)] leading-[1.02] font-normal tracking-[-0.035em] md:mt-20">
@@ -80,7 +73,7 @@ export function Contact() {
             © {new Date().getFullYear()} {site.name}
           </span>
           <a href="#top" className="hover:text-ink">
-            <span className="wipe">Back to {altitude.top} m ↑</span>
+            <span className="wipe">Back to the top ↑</span>
           </a>
         </div>
       </div>

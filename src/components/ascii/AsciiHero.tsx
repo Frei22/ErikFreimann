@@ -29,8 +29,12 @@ const TITLE_OUT = 0.075;
 const LINE_IN_START = 0.845;
 const LINE_IN_END = 0.92;
 
-/** How much page the flight is worth. Long enough to feel like distance. */
-const FLIGHT_HEIGHT = "520svh";
+/**
+ * How much page the flight is worth. The eased zoom crawls through the wide
+ * shot on purpose, so the runway is shorter than it was — otherwise the first
+ * screens read as nothing happening.
+ */
+const FLIGHT_HEIGHT = "440svh";
 
 /** Follow lag on top of Lenis — the original page's `smoothing`. */
 const FOLLOW = 0.12;
@@ -187,7 +191,9 @@ export function AsciiHero() {
             protect and nothing over the picture. */}
         <div ref={scrim} aria-hidden className="hero-scrim pointer-events-none absolute inset-0">
           <span className="absolute inset-x-0 top-0 block h-24 bg-gradient-to-b from-paper/90 to-transparent" />
-          <span className="absolute inset-x-0 bottom-0 block h-[44%] bg-gradient-to-t from-paper via-paper/75 to-transparent" />
+          {/* A phone rests the title on paper below the band, so it barely
+              needs this; a covered landscape screen puts it over stipple. */}
+          <span className="absolute inset-x-0 bottom-0 block h-[20%] bg-gradient-to-t from-paper via-paper/55 to-transparent md:h-[44%] md:via-paper/75" />
         </div>
 
         {/* Title. Sits low-left over the sky, clears the frame the moment

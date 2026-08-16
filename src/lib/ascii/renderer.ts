@@ -42,9 +42,65 @@ export const PLATE_FONT =
  */
 const MAX_ZOOM = 24;
 
+/**
+ * Ease on the zoom.
+ *
+ * A plain exponential (the original's `exp(t · ln Z)`) changes scale at a
+ * constant *relative* rate, which sounds right and feels wrong. Relative rate
+ * constant means the frame edge sweeps a constant number of pixels per frame —
+ * but at the wide shot a cell is under 2 px, so those pixels are several cells,
+ * and the whole stipple field reshuffles between frames. It boils rather than
+ * glides. Measured: a 0.004 step in progress repaints 27% of pixels at the
+ * wide end against 8% at the close end.
+ *
+ * Easing in spends the scroll where the cells are big enough to move smoothly,
+ * and crawls through the wide shot — which is also the only part that reads as
+ * a picture, so it is the part worth lingering in.
+ */
+const ZOOM_EASE = 1.55;
+
 /** Progress window over which the picture bleaches out to flat paper. */
 const WHITEOUT_START = 0.72;
 const WHITEOUT_END = 0.86;
+
+/**
+ * Fraction of the plate's width a narrow screen shows.
+ *
+ * Covering a phone with a 2 : 1 plate means throwing away 77% of the width,
+ * which loses the sun the copy tells you to scroll into. Fitting the whole
+ * width instead gives a 190 px ribbon with nothing in it. Extending the sky
+ * upward to make it portrait-shaped would take 891 invented rows against 263
+ * real ones. So a phone gets a slice — wide enough that the sun is in frame,
+ * tall enough to carry the screen — laid as a band on paper.
+ */
+const PHONE_VISIBLE_WIDTH = 0.55;
+
+/**
+ * How far the band's own edges dissolve into the paper, in CSS px. The plate's
+ * outermost sky rows are dense dither, so a short fade still reads as a ruled
+ * edge — this needs to be long enough to actually dissolve them.
+ */
+const EDGE_FADE = 64;
+
+/**
+ * ── Why there is no bitmap here ──────────────────────────────────────────
+ *
+ * Some of the roughness at the wide shot is inherent: a cell is under 4
+ * device px there, so re-rasterising type every frame re-snaps every stem to
+ * a slightly different pixel grid and the field shimmers rather than glides.
+ * Scaling a pre-rendered bitmap would interpolate instead, and move smoother.
+ *
+ * It was built and measured, and it is not used, because the supersampled
+ * bitmap comes back a touch heavier in the sky than live text does, and
+ * matching ascii-hero.html exactly beats a smoothness gain that could not be
+ * demonstrated objectively. Performance is not the reason — a full live-text
+ * redraw holds 60 fps at every zoom on a 1920 × 1080 @dpr 2 viewport.
+ *
+ * If the flight ever needs to be smoother than the plate needs to be exact,
+ * this is the lever: raster the grid once at the zoom-1 device cell size,
+ * blit it 1:1 at rest, and crossfade to live text over roughly 4.5 → 8
+ * device px per cell.
+ */
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const smoothstep = (t: number) => t * t * (3 - 2 * t);
@@ -91,6 +147,50 @@ export class AsciiRenderer {
   }
 
   /**
+   * How the plate sits in the frame at rest, and how portrait the viewport is.
+   * `k` is 0 on a landscape screen — cover, exactly as the original page — and
+   * reaches 1 on a phone, where the plate becomes a band instead.
+   */
+  private framing() {
+    const { cols, rows } = this.grid;
+    const cover = Math.max(this.vw / cols, this.vh / (rows.length * GRID_ASPECT));
+    const band = this.vw / (cols * PHONE_VISIBLE_WIDTH);
+    const k = clamp01((1.45 - this.vw / this.vh) / 0.5);
+
+    return {
+      k,
+      unit: cover * (1 - k) + band * k,
+      // The band is pushed to the right of the plate so the sun is in it from
+      // the first frame, and sits high so the title has clean paper beneath.
+      restX: cols / 2 + (cols * (1 - PHONE_VISIBLE_WIDTH / 2) - cols / 2) * k,
+      restY: 0.5 - 0.1 * k,
+    };
+  }
+
+  /**
+   * Paper laid over one horizontal edge of the plate, fading inward, so the
+   * band ends in haze instead of a cut. `inward` is +1 for a top edge, -1 for
+   * a bottom one. A no-op when the edge is outside the viewport.
+   */
+  private fadeEdge(edgeY: number, inward: 1 | -1) {
+    const { ctx, vw, vh } = this;
+    if (edgeY < -EDGE_FADE || edgeY > vh + EDGE_FADE) return;
+
+    const far = edgeY + inward * EDGE_FADE;
+    const gradient = ctx.createLinearGradient(0, edgeY, 0, far);
+    gradient.addColorStop(0, this.theme.paper);
+    gradient.addColorStop(1, "transparent");
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, Math.min(edgeY, far), vw, EDGE_FADE);
+
+    // Beyond the edge there is no picture at all, only paper.
+    ctx.fillStyle = this.theme.paper;
+    if (inward === 1) ctx.fillRect(0, 0, vw, Math.max(0, edgeY));
+    else ctx.fillRect(0, Math.min(vh, edgeY), vw, vh);
+  }
+
+  /**
    * @param progress 0 = the whole plate, 1 = bare light.
    */
   draw(progress: number) {
@@ -101,20 +201,19 @@ export class AsciiRenderer {
     const { cols, rows } = grid;
     const nRows = rows.length;
 
-    // Exponential zoom, so a constant scroll rate reads as a constant rate
-    // of approach.
-    const zoom = Math.exp(t * Math.log(MAX_ZOOM));
+    const zoom = Math.exp(Math.pow(t, ZOOM_EASE) * Math.log(MAX_ZOOM));
 
-    // At zoom 1 the plate covers the viewport; the cell scales from there.
-    const cellW = Math.max(vw / cols, vh / (nRows * GRID_ASPECT)) * zoom;
+    const { unit, restX, restY } = this.framing();
+    const cellW = unit * zoom;
     const cellH = cellW * GRID_ASPECT;
 
-    // The anchor drifts from the middle of the picture to the sun as we go in.
+    // The anchor drifts from where the plate rests to the sun as we go in, and
+    // the band recentres into the frame as it takes the screen over.
     const e = smoothstep(t);
-    const fx = cols / 2 + (SUN.x * cols - cols / 2) * e;
+    const fx = restX + (SUN.x * cols - restX) * e;
     const fy = nRows / 2 + (SUN.y * nRows - nRows / 2) * e;
     const ox = vw / 2 - fx * cellW;
-    const oy = vh / 2 - fy * cellH;
+    const oy = vh * (restY + (0.5 - restY) * e) - fy * cellH;
 
     ctx.globalAlpha = 1;
     ctx.fillStyle = this.theme.paper;
@@ -138,6 +237,13 @@ export class AsciiRenderer {
         ctx.fillText(rows[r].slice(c0, c1), x, oy + r * cellH + cellH / 2);
       }
     }
+
+    // Where the plate's own edges fall inside the frame — a phone at rest —
+    // dissolve them into the paper rather than cutting the picture off with a
+    // ruled line. Off-screen edges cost nothing, so a covered viewport skips
+    // this entirely.
+    this.fadeEdge(oy, 1);
+    this.fadeEdge(oy + nRows * cellH, -1);
 
     // The whiteout. Laying paper over the top bleaches ink and glyph edges
     // together, so the picture burns out rather than dissolving in patches —

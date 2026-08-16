@@ -70,26 +70,6 @@ export const site = {
   ],
 } as const;
 
-/* ─────────────────────────────────────────────────────────────
-   THE DESCENT
-   The page is one run down the Vallée Blanche — the same route the
-   ASCII plate in the hero was made from. The altimeter bottom-left
-   reads out where you are on it, top to bottom, as you scroll.
-   ───────────────────────────────────────────────────────────── */
-
-/** Aiguille du Midi at the top, Chamonix at the bottom. Real numbers. */
-export const altitude = { top: 3842, bottom: 1035 } as const;
-
-/** Sections, in order. `id` doubles as the anchor and the observer target. */
-export const descent = [
-  { id: "top", index: "00", label: "Vallée Blanche" },
-  { id: "work", index: "01", label: "Selected work" },
-  { id: "case", index: "02", label: "Case study" },
-  { id: "repos", index: "03", label: "Repositories" },
-  { id: "about", index: "04", label: "About" },
-  { id: "contact", index: "05", label: "Chamonix" },
-] as const;
-
 /**
  * The line the whiteout hands you — the first words after the hero burns
  * out. It is the one sentence the site is allowed, so it carries the claim.

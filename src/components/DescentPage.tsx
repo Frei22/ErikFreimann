@@ -6,15 +6,15 @@ import { Case } from "@/components/sections/Case";
 import { Contact } from "@/components/sections/Contact";
 import { Repos } from "@/components/sections/Repos";
 import { Work } from "@/components/sections/Work";
-import { Altimeter } from "@/components/site/Altimeter";
+import { FlightRing } from "@/components/site/FlightRing";
 import { Nav } from "@/components/site/Nav";
 import type { Repo } from "@/lib/github";
 import { useLenis } from "@/lib/useLenis";
 
 /**
- * One run down the Vallée Blanche: 3842 m at the top of the ASCII plate,
- * 1035 m at the footer. The hero owns the motion — everything below it is
- * type on paper that arrives and then holds still.
+ * The hero owns the motion. Everything below it is type on paper that arrives
+ * and then holds still — including the chrome: the flight ring is the only
+ * persistent instrument, and it leaves with the flight.
  */
 export function DescentPage({ repos }: { repos: Repo[] }) {
   useLenis();
@@ -22,7 +22,7 @@ export function DescentPage({ repos }: { repos: Repo[] }) {
   return (
     <>
       <Nav />
-      <Altimeter />
+      <FlightRing />
 
       <main>
         <AsciiHero />
