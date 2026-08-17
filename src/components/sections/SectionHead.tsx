@@ -22,7 +22,7 @@ export function SectionHead({
     <div className="pt-24 md:pt-32">
       <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 font-mono text-[11px] tracking-[0.2em] uppercase">
         <p data-fade className="js-anim">
-          <span className="text-green">{index}</span>
+          <span className="text-blue">{index}</span>
           <span className="px-2.5 text-line">/</span>
           <span>{label}</span>
         </p>

@@ -25,7 +25,7 @@ export function About() {
           <h2 className="font-fraunces text-[clamp(1.8rem,4.4vw,3.1rem)] leading-[1.08] font-normal tracking-[-0.03em]">
             <Mask>{about.headline.lead}</Mask>
             <Mask>
-              <span className="text-green italic">{about.headline.emphasis}</span>
+              <span className="text-blue italic">{about.headline.emphasis}</span>
             </Mask>
           </h2>
 
@@ -46,7 +46,7 @@ export function About() {
             <dt className="text-muted uppercase">{about.facts.based}</dt>
             <dd>{about.location}</dd>
             <dt className="text-muted uppercase">{about.facts.status}</dt>
-            <dd className="text-green">{about.facts.statusValue}</dd>
+            <dd className="text-blue">{about.facts.statusValue}</dd>
           </dl>
         </div>
 

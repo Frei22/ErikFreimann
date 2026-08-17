@@ -52,10 +52,10 @@ const html = `<!doctype html>
   .layer { position: relative; }
   .label { font-family: 'Space Mono', monospace; font-size: 18px; letter-spacing: .16em; text-transform: uppercase; color: #6f7174; }
   h1 { font-size: 132px; line-height: .88; letter-spacing: -.035em; font-weight: 400; }
-  .accent { color: #2f5d3a; font-style: italic; }
+  .accent { color: #36576d; font-style: italic; }
   .row { display: flex; justify-content: space-between; align-items: flex-end; }
   .rule { height: 1px; background: #dfdedb; margin-bottom: 28px; }
-  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 99px; background: #2f5d3a; margin-right: 12px; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 99px; background: #36576d; margin-right: 12px; }
 </style></head>
 <body>
   <pre class="plate">${art}</pre>

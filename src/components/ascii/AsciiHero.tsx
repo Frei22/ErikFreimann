@@ -236,7 +236,7 @@ export function AsciiHero() {
               data-fade="0.2"
               className="js-anim flex items-center gap-3 font-mono text-[11px] tracking-[0.2em] text-muted uppercase"
             >
-              <span className="hero-cue block h-8 w-px bg-green" aria-hidden />
+              <span className="hero-cue block h-8 w-px bg-blue" aria-hidden />
               {hero.cue}
             </p>
           </div>
@@ -249,12 +249,12 @@ export function AsciiHero() {
           className="hero-statement absolute inset-0 flex items-center px-5 opacity-0 will-change-[transform,opacity] md:px-10"
         >
           <div className="mx-auto max-w-4xl">
-            <p className="font-mono text-[11px] tracking-[0.2em] text-green uppercase">
+            <p className="font-mono text-[11px] tracking-[0.2em] text-blue uppercase">
               {statement.label}
             </p>
             <p className="mt-7 font-fraunces text-[clamp(1.7rem,4.6vw,3.6rem)] leading-[1.08] font-normal tracking-[-0.025em] text-balance">
               {statement.lead}{" "}
-              <span className="text-green italic">{statement.emphasis}</span>
+              <span className="text-blue italic">{statement.emphasis}</span>
             </p>
           </div>
         </div>

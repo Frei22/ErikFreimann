@@ -6,7 +6,7 @@ import { onHeroProgress } from "@/lib/heroProgress";
 import { prefersReducedMotion, useIsomorphicLayoutEffect } from "@/lib/motion";
 
 /**
- * The flight's only instrument: a green stripe across the foot of the screen
+ * The flight's only instrument: a blue stripe across the foot of the screen
  * that draws itself as the plate comes toward you, and is gone by the time the
  * light hands you the first line.
  *
@@ -46,7 +46,7 @@ export function FlightStripe() {
     >
       <span
         ref={bar}
-        className="block h-full w-full origin-left scale-x-0 bg-green will-change-transform"
+        className="block h-full w-full origin-left scale-x-0 bg-blue will-change-transform"
       />
     </div>
   );

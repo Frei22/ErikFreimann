@@ -46,19 +46,19 @@ sun in frame, laid on paper with hard edges.
 ## Colour
 
 Three values, no more. `paper` and `ink` are lifted straight out of the plate, so the hero
-canvas and the page are literally the same two colours. `green` is the only accent.
+canvas and the page are literally the same two colours. `blue` is the only accent.
 
 | Token | Value | |
 | --- | --- | --- |
 | `paper` | `#faf8f3` | the ground |
 | `ink` | `#1a1e26` | 15.7 : 1 on paper |
-| `green` | `#2f5d3a` | 7.2 : 1 on paper |
+| `blue` | `#36576d` | 7.2 : 1 on paper |
 | `muted` | `#6f7174` | ink at 62% — 4.6 : 1, passes AA for body |
 
 ## Motion
 
 Two moves for the whole site: type rises out of a mask, and rules draw themselves. That is
-the entire vocabulary — everything else is the hero. The only piece of chrome is the green
+the entire vocabulary — everything else is the hero. The only piece of chrome is the blue
 stripe at the foot of the screen, which draws itself during the flight and leaves with it.
 
 `prefers-reduced-motion` is honoured throughout: the flight is off, Lenis never initialises,

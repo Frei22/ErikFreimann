@@ -5,7 +5,7 @@
 
    paper and ink are lifted straight out of the ASCII plate in
    /public/ascii/vallee-blanche.txt, so the hero canvas and the page it
-   sits on are literally the same two values. green is the one accent:
+   sits on are literally the same two values. blue is the one accent:
    links, marks, the descent line. Everything else is those three mixed.
    ───────────────────────────────────────────────────────────────────── */
 
@@ -16,7 +16,7 @@
 
   --color-paper: #faf8f3;
   --color-ink: #1a1e26;
-  --color-green: #2f5d3a;
+  --color-blue: #36576d;
 
   /* ink over paper at 62% / 12% / 5% — precomputed so they stay exact. */
   --color-muted: #6f7174;
@@ -42,7 +42,7 @@ body {
 }
 
 ::selection {
-  background: var(--color-green);
+  background: var(--color-blue);
   color: var(--color-paper);
 }
 
@@ -93,7 +93,7 @@ html.motion-ready .js-anim {
 }
 
 /* ── Links ──────────────────────────────────────────────────────────────
-   A green rule wipes in from the left. No underline-offset guesswork —
+   A blue rule wipes in from the left. No underline-offset guesswork —
    it is a pseudo-element, so it never collides with descenders.           */
 .wipe {
   position: relative;
@@ -106,7 +106,7 @@ html.motion-ready .js-anim {
   right: 0;
   bottom: -0.14em;
   height: 1px;
-  background: var(--color-green);
+  background: var(--color-blue);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
@@ -133,7 +133,7 @@ a:focus-visible .wipe::after {
 }
 
 *:focus-visible {
-  outline: 2px solid var(--color-green);
+  outline: 2px solid var(--color-blue);
   outline-offset: 3px;
   border-radius: 1px;
 }

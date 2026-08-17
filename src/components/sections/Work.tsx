@@ -38,7 +38,7 @@ function Entry({
               data-fade
               className="js-anim tnum flex items-baseline gap-3 font-mono text-[10px] tracking-[0.2em] uppercase"
             >
-              <span className="text-green">{project.index}</span>
+              <span className="text-blue">{project.index}</span>
               <span className="text-line">/</span>
               <span className="text-muted">
                 {project.year} · {text.role}
@@ -104,7 +104,7 @@ function Entry({
               >
                 <p
                   data-fade
-                  className="js-anim tnum font-mono text-[10px] tracking-[0.2em] text-green uppercase"
+                  className="js-anim tnum font-mono text-[10px] tracking-[0.2em] text-blue uppercase"
                 >
                   {String(i + 1).padStart(2, "0")}
                 </p>
