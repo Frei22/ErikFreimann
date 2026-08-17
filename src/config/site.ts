@@ -44,6 +44,14 @@ export const site = {
  * plate backs it. The prose lives in the copy files, keyed by `id`.
  *
  * Years are first-commit years, read from the repos.
+ *
+ * On `crop`: the inset is a 2 : 1 box, and a cell is GRID_ASPECT (1.875) times
+ * taller than it is wide, so 60 × 16 fills it exactly — no letterboxing at any
+ * width. Keep the count near that: the panel is ~427 px on a desktop column and
+ * ~350 px on a phone, so 60 columns puts a glyph at 12 px and 10 px
+ * respectively, which is type. The first pass asked for 150 × 40 and got 4.8 px
+ * glyphs — under the size the rasteriser can hold a letterform, so both insets
+ * came out as grey haze rather than a picture made of characters.
  */
 export const projects = [
   {
@@ -64,7 +72,7 @@ export const projects = [
     /** Empty means private — the entry renders without a link rather than
      *  offering a click that 404s. Both were private as of 2026-08-16. */
     href: "",
-    crop: { col: 20, row: 66, cols: 150, rows: 40 },
+    crop: { col: 328, row: 120, cols: 60, rows: 16 },
   },
   {
     id: "vana",
@@ -73,7 +81,7 @@ export const projects = [
     year: "2026",
     stack: ["Flutter", "Dart", "Firebase", "Firestore", "Cloud Functions", "Groq", "Gemini"],
     href: "",
-    crop: { col: 800, row: 22, cols: 150, rows: 40 },
+    crop: { col: 644, row: 66, cols: 60, rows: 16 },
   },
 ] as const;
 
